@@ -83,11 +83,11 @@ this vector of names.</p></dd>
 
 <dt>direct_sample</dt>
 <dd><p>A function to sample directly from the
-parameter space.  In the case where a model returns a posterior
-(e.g., in Bayesian inference), this is assumed to be sampling
-from the prior.  We'll use this for generating initial
-conditions for MCMC where those are not given, and possibly
-other uses.</p></dd>
+parameter space, given an <a href="mcstate_rng.html">mcstate_rng</a> object to sample from.
+In the case where a model returns a posterior (e.g., in Bayesian
+inference), this is assumed to be sampling from the prior.
+We'll use this for generating initial conditions for MCMC where
+those are not given, and possibly other uses.</p></dd>
 
 
 <dt>density</dt>
