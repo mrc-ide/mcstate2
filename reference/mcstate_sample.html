@@ -60,7 +60,14 @@ runs a single chain as a proof of concept.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sample</span><span class="op">(</span><span class="va">model</span>, <span class="va">sampler</span>, <span class="va">n_steps</span>, initial <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sample</span><span class="op">(</span></span>
+<span>  <span class="va">model</span>,</span>
+<span>  <span class="va">sampler</span>,</span>
+<span>  <span class="va">n_steps</span>,</span>
+<span>  initial <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_chains <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  runner <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -86,6 +93,19 @@ sampler implemented is <code><a href="mcstate_sampler_random_walk.html">mcstate_
 <dt>initial</dt>
 <dd><p>Optionally, initial parameter values for the
 sampling.  If not given, we sample from the model (or its prior).</p></dd>
+
+
+<dt>n_chains</dt>
+<dd><p>Number of chains to run.  The default is to run a
+single chain, but you will likely want to run more.</p></dd>
+
+
+<dt>runner</dt>
+<dd><p>A runner for your chains.  The default option is to
+run chains in series (via <a href="mcstate_runner_serial.html">mcstate_runner_serial</a>).  The only
+other current option is <a href="mcstate_runner_parallel.html">mcstate_runner_parallel</a> which uses the
+<code>parallel</code> package to run chains in parallel.  If you only run
+one chain then this argument is best left alone.</p></dd>
 
 </dl></div>
     <div id="value">
