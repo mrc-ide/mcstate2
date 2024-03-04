@@ -40,6 +40,9 @@
     <loc>/reference/mcstate_sample.html</loc>
   </url>
   <url>
+    <loc>/reference/mcstate_sample_continue.html</loc>
+  </url>
+  <url>
     <loc>/reference/mcstate_sampler_random_walk.html</loc>
   </url>
 </urlset>
