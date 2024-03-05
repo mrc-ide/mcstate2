@@ -56,7 +56,11 @@ properties.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_model_properties</span><span class="op">(</span>has_gradient <span class="op">=</span> <span class="cn">NULL</span>, has_direct_sample <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_model_properties</span><span class="op">(</span></span>
+<span>  has_gradient <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  has_direct_sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  is_stochastic <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -71,6 +75,12 @@ the model.</p></dd>
 <dd><p>Logical, indicating if the model has a
 <code>direct_sample</code> method.  Use <code>NULL</code> (the default) to detect this
 from the model.</p></dd>
+
+
+<dt>is_stochastic</dt>
+<dd><p>Logical, indicating if the model is
+stochastic.  Stochastic models must supply a <code>set_rng_state</code>
+method and we might support a <code>get_rng_state</code> method later.</p></dd>
 
 </dl></div>
     <div id="value">
