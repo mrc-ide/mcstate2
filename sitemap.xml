@@ -46,6 +46,9 @@
     <loc>/reference/mcstate_sample_continue.html</loc>
   </url>
   <url>
+    <loc>/reference/mcstate_sampler_adaptive.html</loc>
+  </url>
+  <url>
     <loc>/reference/mcstate_sampler_hmc.html</loc>
   </url>
   <url>
