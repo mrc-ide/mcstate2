@@ -119,8 +119,20 @@ object.</p></dd>
     <h2>Value</h2>
     
 
-<p>A list of parameters and densities.</p>
-    </div>
+<p>A list of parameters and densities; we'll write tools for
+dealing with this later.  Elements include:</p><ul><li><p><code>pars</code>: A matrix with as many columns as you have parameters, and
+as many rows as the total number of samples taken across all
+chains (<code>n_steps * n_chains</code>)</p></li>
+<li><p><code>density</code>: A vector of model log densities, one per step (length
+<code>n_steps * n_chains</code>)</p></li>
+<li><p><code>initial</code>: A record of the initial conditions, a matrix with as
+many columns as you have parameters and <code>n_chains</code> rows</p></li>
+<li><p><code>details</code>: Additional details reported by the sampler; this will
+be a list of length <code>n_chains</code> (or <code>NULL</code>) and the details
+depend on the sampler.  This one is subject to change.</p></li>
+<li><p><code>chain</code>: An integer vector indicating the chain that the samples
+came from (1, 2, ..., <code>n_chains</code>)</p></li>
+</ul></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
