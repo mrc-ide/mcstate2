@@ -138,7 +138,9 @@ chains (<code>n_steps * n_chains</code>)</p></li>
 <li><p><code>density</code>: A vector of model log densities, one per step (length
 <code>n_steps * n_chains</code>)</p></li>
 <li><p><code>initial</code>: A record of the initial conditions, a matrix with as
-many columns as you have parameters and <code>n_chains</code> rows</p></li>
+many rows as you have parameters and <code>n_chains</code> columns (this is
+the same format as the matrix form of the <code>initial</code> input
+parameter)</p></li>
 <li><p><code>details</code>: Additional details reported by the sampler; this will
 be a list of length <code>n_chains</code> (or <code>NULL</code>) and the details
 depend on the sampler.  This one is subject to change.</p></li>
