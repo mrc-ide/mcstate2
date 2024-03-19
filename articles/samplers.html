@@ -81,7 +81,120 @@
     
     
 <p>This vignette will describe the samplers available in mcstate2.</p>
-  </main>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mrc-ide.github.io/mcstate2" class="external-link">mcstate2</a></span><span class="op">)</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="comparisons">Comparisons<a class="anchor" aria-label="anchor" href="#comparisons"></a>
+</h2>
+<div class="section level3">
+<h3 id="the-bendy-banana">The bendy banana<a class="anchor" aria-label="anchor" href="#the-bendy-banana"></a>
+</h3>
+<p>This example shows HMC outperforming a random walk on a two
+dimensional banana-shaped function. Our model takes two parameters
+<code>alpha</code> and <code>beta</code>, and is based on two successive
+simple draws, with the one conditional on the other: ￼ <span class="math display">\[
+\beta \sim Normal(1,0) \\
+\alpha \sim Normal(\beta^2, \sigma)
+\]</span> ￼ with <span class="math inline">\(\sigma\)</span> the
+standard deviation of the conditional draw.</p>
+<p>We’ll use R’s <code>dnorm</code> for the likelihood calculations and
+then differentiate the density by hand (using the formula of the
+gaussian density) to derive the gradient by hand. We skip the details
+here as this will be automated in an upcoming version of the package.
+￼</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">banana_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sd</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/mcstate_model.html">mcstate_model</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    parameters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span><span class="op">)</span>,</span>
+<span>    direct_sample <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rng</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">beta</span> <span class="op">&lt;-</span> <span class="va">rng</span><span class="op">$</span><span class="fu">random_normal</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span>      <span class="va">alpha</span> <span class="op">&lt;-</span> <span class="va">rng</span><span class="op">$</span><span class="fu">normal</span><span class="op">(</span><span class="fl">1</span>, <span class="va">beta</span><span class="op">^</span><span class="fl">2</span>, <span class="va">sd</span><span class="op">)</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">alpha</span>, <span class="va">beta</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    density <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">alpha</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span>      <span class="va">beta</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">beta</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">alpha</span> <span class="op">-</span> <span class="va">beta</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="va">sd</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    gradient <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">alpha</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span>      <span class="va">beta</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">(</span><span class="va">beta</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="va">alpha</span><span class="op">)</span> <span class="op">/</span> <span class="va">sd</span><span class="op">^</span><span class="fl">2</span>,</span>
+<span>        <span class="op">-</span><span class="va">beta</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">beta</span> <span class="op">*</span> <span class="op">(</span><span class="va">alpha</span> <span class="op">-</span> <span class="va">beta</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="va">sd</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    domain <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Let’s create a model with <span class="math inline">\(\sigma =
+0.5\)</span></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu">banana_model</span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p>We can plot a greyscale visualisation of its density by computing the
+density over a grid. Normally this is not possible of course:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">6</span>, length.out <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>, length.out <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">b</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">a</span> <span class="op">-</span> <span class="va">b</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, <span class="va">z</span>, xlab <span class="op">=</span> <span class="st">"alpha"</span>, ylab <span class="op">=</span> <span class="st">"beta"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="samplers_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<p>In this particular case we can also easily generate samples, so we
+know what a good sampler will produce:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rng</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/mcstate_rng.html">mcstate_rng</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">m</span><span class="op">$</span><span class="fu">direct_sample</span><span class="op">(</span><span class="va">rng</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, <span class="va">z</span>, xlab <span class="op">=</span> <span class="st">"alpha"</span>, ylab <span class="op">=</span> <span class="st">"beta"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>, <span class="va">s</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"#00000055"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="samplers_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p>It is also possible to compute the 95% confidence interval of the
+distribution using the relationship between the standard bivariate
+normal distribution and the banana shaped distribution as defined above.
+We can check than roughly 10 samples (out of 200) are out of this 95% CI
+contour.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span>, length.out <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span></span>
+<span><span class="va">z95</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">local</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>  <span class="va">sd</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
+<span>  <span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Chisquare.html" class="external-link">qchisq</a></span><span class="op">(</span><span class="fl">.95</span>, df <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">r</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span>
+<span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="va">r</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">y</span> <span class="op">*</span> <span class="va">sd</span>, <span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, <span class="va">z</span>, xlab <span class="op">=</span> <span class="st">"alpha"</span>, ylab <span class="op">=</span> <span class="st">"beta"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z95</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">z95</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span>, <span class="va">s</span><span class="op">[</span><span class="fl">2</span>, <span class="op">]</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"#00000055"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="samplers_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+</div>
+<div class="section level3">
+<h3 id="sampling-with-other-samplers">Sampling with other samplers<a class="anchor" aria-label="anchor" href="#sampling-with-other-samplers"></a>
+</h3>
+<p>It is not generally possible to directly sample from a density
+(otherwise MCMC and similar methods would not exist!). In these cases we
+need to use a sampler based on the density and if available possibly the
+gradient of the density.</p>
+<p>We can start with a basic random-walk sampler</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sampler_rw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcstate_sampler_random_walk.html">mcstate_sampler_random_walk</a></span><span class="op">(</span>vcv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">res_rw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcstate_sample.html">mcstate_sample</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">sampler_rw</span>, <span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_rw</span><span class="op">$</span><span class="va">pars</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"#ff222277"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z95</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">z95</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p><img src="samplers_files/figure-html/RW_sampling-1.png" width="700"></p>
+<p>As we can see this is not great. We can probably improve the samples
+here by finding a better variance covariance matrix (VCV), but a single
+VCV will not hold well over the whole surface because it is not very
+similar to a multivariate normal (that is, the appropriate VCV will
+change depending on the position in parameter space)</p>
+<p>Let’s try the Hamiltonian Monte Carlo (HMC) sampler, which uses the
+gradient to move efficiently in parameter space:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sampler_hmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcstate_sampler_hmc.html">mcstate_sampler_hmc</a></span><span class="op">(</span>epsilon <span class="op">=</span> <span class="fl">0.1</span>, n_integration_steps <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">res_hmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcstate_sample.html">mcstate_sample</a></span><span class="op">(</span><span class="va">m</span>, <span class="va">sampler_hmc</span>, <span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res_hmc</span><span class="op">$</span><span class="va">pars</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"#ff222277"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z95</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">z95</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p><img src="samplers_files/figure-html/HMC_sampling-1.png" width="700"></p>
+<p>Clearly better!</p>
+</div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
