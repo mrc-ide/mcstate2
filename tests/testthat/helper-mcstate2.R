@@ -17,13 +17,17 @@ ex_simple_gamma1 <- function(shape = 1, rate = 1) {
 
 ex_simple_nested <- function(n_groups) {
   e <- new.env(parent = topenv())
-  e$i <- seq_len(n_groups)
+  e$n_groups <- n_groups
+  e$i <- as.numeric(seq_len(n_groups))
   with(
     e,
     mcstate_model(list(
       parameters = c("sigma", paste0("mu_", i)),
+      direct_sample = function(rng) {
+        c(rng$exponential(1, 1), rng$normal(n_groups, i, 1))
+      },
       density = function(x, by_group = FALSE) {
-        sigma <- x[[1]]
+        sigma <- exp(x[[1]])
         mu <- x[-1]
         z <- dnorm(mu, 2^i, sigma, log = TRUE)
         value <- sum(z)

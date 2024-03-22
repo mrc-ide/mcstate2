@@ -5,36 +5,32 @@
 ##'
 ##' @title Nested Random Walk Sampler
 ##'
-##' @param vcv A list of variance covariance matrices.  The format
-##'   here is subject to change.
+##' @param vcv A list of variance covariance matrices.  We expect this
+##'   to be a list with elements `base` and `groups` corresponding to
+##'   the covariance matrix for base parameters (if any) and groups.
 ##'
 ##' @return A `mcstate_sampler` object, which can be used with
 ##'   [mcstate_sample]
 ##'
 ##' @export
-mcstate_sampler_nested_random_walk <- function(vcv = NULL) {
+mcstate_sampler_nested_random_walk <- function(vcv) {
   if (!is.list(vcv)) {
     cli::cli_abort(
-      c("Expected a list for 'vcv'",
-        i = "We need a list where each element is itself a vcv for a subgroup",
-        i = "Later we might change this to allow a block-structured matrix"),
+      "Expected a list for 'vcv'",
       arg = 'vcv')
   }
 
-  for (i in seq_along(vcv)) {
-    ## TODO: this might not create the best error message, but it's
-    ## likely to be clear enough for now.
-
-    ## TODO: we should allow the first element to be empty?
-    check_vcv(vcv[[i]], call = environment())
-  }
-
-  proposal <- lapply(vcv, make_rmvnorm)
+  internal <- new.env(parent = emptyenv())  
+  proposal <- nested_proposal(vcv, environment())
 
   initialise <- function(pars, model, rng) {
-    ## Some checking required here for these:
-    ## model$parameters
-    ## model$groups
+    if (proposal$n_pars != length(model$parameters)) {
+      cli::cli_abort(
+        "Incompatible length parameters and vcv")
+    }
+    if (isTRUE(model$properties$is_stochastic)) {
+      model$model$set_rng_state(rng)
+    }
     density <- model$density(pars, by_group = TRUE)
     internal$density_by_group <- attr(density, "by_group")
     list(pars = pars, density = density)
@@ -47,14 +43,16 @@ mcstate_sampler_nested_random_walk <- function(vcv = NULL) {
   ## update type with some schedule or probability and applying that,
   ## which would allow for faster movement of some part of the chain.
   step <- function(state, model, rng) {
-    pars_next <- proposal$base(state$pars, rng)
-    density_next <- model$density(pars_next, by_group = TRUE)
-    density_by_group_next <- attr(density_next, "by_group")
-    accept <- density_next - state$density > log(rng$random_real(1))
-    if (accept) {
-      state$pars <- pars_next
-      state$density <- density_next
-      internal$density_by_group <- density_by_group_next
+    if (proposal$has_base) {
+      pars_next <- proposal$base(state$pars, rng)
+      density_next <- model$density(pars_next, by_group = TRUE)
+      density_by_group_next <- attr(density_next, "by_group")
+      accept <- density_next - state$density > log(rng$random_real(1))
+      if (accept) {
+        state$pars <- pars_next
+        state$density <- density_next
+        internal$density_by_group <- density_by_group_next
+      }
     }
 
     pars_next <- proposal$groups(state$pars, rng)
@@ -119,4 +117,31 @@ check_parameter_groups <- function(x, n_pars, name = deparse(substitute(x)),
   if (min(x) < 0) {
     cli::cli_abort("Invalid negative groups in '{name}'", call = call)
   }
+}
+
+
+nested_proposal <- function(vcv, call = NULL) {
+  if (!setequal(names(vcv), c("base", "groups"))) {
+    cli::cli_abort("Expected 'vcv' to have elements 'base' and 'groups'",
+                   arg = "vcv")
+  }
+  has_base <- !is.null(vcv$base)  
+  if (has_base) {
+    check_vcv(vcv$base, call = environment())
+  }
+  if (length(vcv$groups) < 1) {
+    cli::cli_abort("Expected at least 1 group")
+  }
+  if (!is.list(vcv$groups)) {
+    cli::cli_abort("Expected 'vcv$groups' to be a list")
+  }
+  for (i in seq_along(vcv$base)) {
+    check_vcv(vcv$groups[[i]], call = environment())
+  }
+  list(
+    base = if (has_base) make_rmvnorm(vcv$base),
+    groups = lapply(vcv$base, make_rmvnorm),
+    has_base = has_base,
+    n_groups = length(vcv$groups),
+    n_pars = nrow(vcv$base) + sum(vnapply(vcv$groups, nrow)))
 }
