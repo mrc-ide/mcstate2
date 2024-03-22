@@ -17,13 +17,13 @@
 ##'   stochastic.  Stochastic models must supply `set_rng_state` and
 ##'   `get_rng_state` methods.
 ##'
-##' @param has_groups Logical, indicating that the model can be
-##'   decomposed into parameter groups which are independent of each
-##'   other.  This is indicated by using the `parameter_groups`
-##'   argument to [mcstate_model], and by the presence of a `by_group`
-##'   argument to `density` and (later we may also support this in
-##'   `gradient`).  Use `NULL` (the default) to detect this from the
-##'   model.
+##' @param has_parameter_groups Logical, indicating that the model can
+##'   be decomposed into parameter groups which are independent of
+##'   each other.  This is indicated by using the `parameter_groups`
+##'   field within the `model` object passed to [mcstate_model], and
+##'   by the presence of a `by_group` argument to `density` and (later
+##'   we may also support this in `gradient`).  Use `NULL` (the
+##'   default) to detect this from the model.
 ##'
 ##' @return A list of class `mcstate_model_properties` which should
 ##'   not be modified.
@@ -32,11 +32,11 @@
 mcstate_model_properties <- function(has_gradient = NULL,
                                      has_direct_sample = NULL,
                                      is_stochastic = NULL,
-                                     has_groups = NULL) {
+                                     has_parameter_groups = NULL) {
   ret <- list(has_gradient = has_gradient,
               has_direct_sample = has_direct_sample,
               is_stochastic = is_stochastic,
-              has_groups = has_groups)
+              has_parameter_groups = has_parameter_groups)
   class(ret) <- "mcstate_model_properties"
   ret
 }
@@ -312,18 +312,19 @@ validate_model_parameter_groups <- function(model, properties, call) {
   if (isFALSE(properties$has_parameter_groups)) {
     return(NULL)
   }
-  if (is.null(properties$parameter_groups) && is.null(properties$parameter_groups)) {
+  parameter_groups <- model$parameter_groups
+  if (is.null(properties$parameter_groups) && is.null(parameter_groups)) {
     return(NULL)
   }
   ## Here, we're not reporting intent very well; we throw about the
   ## issue but not about how to circumvent it with properties
-  check_parameter_groups(model$parameter_groups, length(model$parameters),
-                         call)
+  check_parameter_groups(parameter_groups, length(model$parameters),
+                         name = "model$parameter_groups", call = call)
   if (!("by_group" %in% names(formals(model$density)))) {
     cli::cli_abort("Expected 'model$density' to have an argument 'by_group'",
                    call = call)
   }
-  model
+  parameter_groups
 }
 
 

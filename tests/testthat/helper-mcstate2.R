@@ -33,7 +33,7 @@ ex_simple_nested <- function(n_groups) {
         value <- sum(z)
         if (by_group) structure(value, "by_group" = z) else value
       },
-      groups = c(0, i))))
+      parameter_groups = c(0, i))))
 }
 
 

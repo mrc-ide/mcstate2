@@ -20,19 +20,47 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
       arg = 'vcv')
   }
 
-  internal <- new.env(parent = emptyenv())  
-  proposal <- nested_proposal(vcv, environment())
+  if (!setequal(names(vcv), c("base", "groups"))) {
+    cli::cli_abort("Expected 'vcv' to have elements 'base' and 'groups'",
+                   arg = "vcv")
+  }
+  if (!is.null(vcv$base)) {
+    check_vcv(vcv$base, call = environment())
+  }
+  if (length(vcv$groups) < 1) {
+    cli::cli_abort("Expected at least 1 group")
+  }
+  if (!is.list(vcv$groups)) {
+    cli::cli_abort("Expected 'vcv$groups' to be a list")
+  }
+  for (i in seq_along(vcv$base)) {
+    check_vcv(vcv$groups[[i]], call = environment())
+  }
+
+  internal <- new.env(parent = emptyenv())
 
   initialise <- function(pars, model, rng) {
-    if (proposal$n_pars != length(model$parameters)) {
-      cli::cli_abort(
-        "Incompatible length parameters and vcv")
+    if (!model$properties$has_parameter_groups) {
+      cli::cli_abort("Your model does not have parameter groupings")
     }
-    if (isTRUE(model$properties$is_stochastic)) {
-      model$model$set_rng_state(rng)
-    }
+    internal$proposal <- nested_proposal(vcv, model$parameter_groups)
+
+    ## This looks different once the stochastic PR is merged
+    ## if (isTRUE(model$properties$is_stochastic)) {
+    ##   model$model$set_rng_state(rng)
+    ## }
     density <- model$density(pars, by_group = TRUE)
-    internal$density_by_group <- attr(density, "by_group")
+    density_by_group <- attr(density, "by_group")
+
+    if (is.null(density_by_group)) {
+      cli::cli_abort(
+        "model$density(x, by_group = TRUE) did not produce a 'by_group' attribute")
+    }
+    if (length(density_by_group) != max(model$parameter_groups)) {
+        cli::cli_abort(
+        "model$density(x, by_group = TRUE) produced a 'by_group' attribute with incorrect length")
+    }
+    internal$density_by_group <- density_by_group
     list(pars = pars, density = density)
   }
 
@@ -43,8 +71,8 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
   ## update type with some schedule or probability and applying that,
   ## which would allow for faster movement of some part of the chain.
   step <- function(state, model, rng) {
-    if (proposal$has_base) {
-      pars_next <- proposal$base(state$pars, rng)
+    if (!is.null(internal$proposal$base)) {
+      pars_next <- internal$proposal$base(state$pars, rng)
       density_next <- model$density(pars_next, by_group = TRUE)
       density_by_group_next <- attr(density_next, "by_group")
       accept <- density_next - state$density > log(rng$random_real(1))
@@ -55,10 +83,10 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
       }
     }
 
-    pars_next <- proposal$groups(state$pars, rng)
+    pars_next <- internal$proposal$groups(state$pars, rng)
     density_next <- model$density(pars_next, by_group = TRUE)
     density_by_group_next <- attr(density_next, "by_group")
-    accept <- density_by_group_next - internal$density_by_grop >
+    accept <- density_by_group_next - internal$density_by_group >
       log(rng$random_real(length(density_by_group_next)))
 
     if (any(accept)) {
@@ -107,8 +135,8 @@ check_parameter_groups <- function(x, n_pars, name = deparse(substitute(x)),
       "Expected '{name}' to have length {n_pars}, but was {length(x)}",
       call = call)
   }
-  n_groups <- max(n_pars)
-  msg <- setdiff(seq_len(n_pars), n_groups)
+  n_groups <- max(x)
+  msg <- setdiff(seq_len(n_groups), x)
   if (length(msg) > 0) {
     # TODO: Better error here that explains the situation better and
     # offers a hint as to what to do.
@@ -120,28 +148,44 @@ check_parameter_groups <- function(x, n_pars, name = deparse(substitute(x)),
 }
 
 
-nested_proposal <- function(vcv, call = NULL) {
-  if (!setequal(names(vcv), c("base", "groups"))) {
-    cli::cli_abort("Expected 'vcv' to have elements 'base' and 'groups'",
-                   arg = "vcv")
+nested_proposal <- function(vcv, parameter_groups, call = NULL) {
+  i_base <- parameter_groups == 0
+  n_base <- sum(i_base)
+  n_groups <- length(vcv$groups)
+  i_group <- lapply(seq_len(n_groups), function(i) parameter_groups == i)
+  if (n_base != NROW(vcv$base)) {
+    cli::cli_abort("Invalid vcv$base")
   }
-  has_base <- !is.null(vcv$base)  
+  if (max(parameter_groups) != n_groups) {
+    cli::cli_abort("Incorrect number of groups in vcv$groups")
+  }
+  n_pars <- NROW(vcv$base) + sum(vnapply(vcv$groups, nrow))
+  if (n_pars != length(parameter_groups)) {
+    ## This will take some explanation...
+    cli::cli_abort("Invalid number of total parameters")
+  }
+
+  has_base <- n_base > 0
   if (has_base) {
-    check_vcv(vcv$base, call = environment())
+    mvn_base <- make_rmvnorm(vcv$base)
+    proposal_base <- function(x, rng) {
+      ## This approach is likely to be a bit fragile, so we'll
+      ## probably want some naming related verification here soon too.
+      x[i_base] <- mvn_base(x[i_base], rng)
+      x
+    }
+  } else {
+    proposal_base <- NULL
   }
-  if (length(vcv$groups) < 1) {
-    cli::cli_abort("Expected at least 1 group")
+
+  mvn_groups <- lapply(vcv$groups, make_rmvnorm)
+  proposal_groups <- function(x, rng) {
+    for (i in seq_len(n_groups)) {
+      x[i_group[[i]]] <- mvn_groups[[i]](x[i_group[[i]]], rng)
+    }
+    x
   }
-  if (!is.list(vcv$groups)) {
-    cli::cli_abort("Expected 'vcv$groups' to be a list")
-  }
-  for (i in seq_along(vcv$base)) {
-    check_vcv(vcv$groups[[i]], call = environment())
-  }
-  list(
-    base = if (has_base) make_rmvnorm(vcv$base),
-    groups = lapply(vcv$base, make_rmvnorm),
-    has_base = has_base,
-    n_groups = length(vcv$groups),
-    n_pars = nrow(vcv$base) + sum(vnapply(vcv$groups, nrow)))
+
+  list(base = proposal_base,
+       groups = proposal_groups)
 }
