@@ -15,6 +15,24 @@ ex_simple_gamma1 <- function(shape = 1, rate = 1) {
 }
 
 
+ex_simple_nested <- function(n_groups) {
+  e <- new.env(parent = topenv())
+  e$i <- seq_len(n_groups)
+  with(
+    e,
+    mcstate_model(list(
+      parameters = c("sigma", paste0("mu_", i)),
+      density = function(x, by_group = FALSE) {
+        sigma <- x[[1]]
+        mu <- x[-1]
+        z <- dnorm(mu, 2^i, sigma, log = TRUE)
+        value <- sum(z)
+        if (by_group) structure(value, "by_group" = z) else value
+      },
+      groups = c(0, i))))
+}
+
+
 ex_dust_sir <- function(n_particles = 100, n_threads = 1,
                         deterministic = FALSE) {
   testthat::skip_if_not_installed("dust")
