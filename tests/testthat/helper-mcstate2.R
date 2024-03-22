@@ -22,18 +22,16 @@ ex_simple_nested <- function(n_groups) {
   with(
     e,
     mcstate_model(list(
-      parameters = c("sigma", paste0("mu_", i)),
+      parameters = paste0("mu_", i),
       direct_sample = function(rng) {
-        c(rng$exponential(1, 1), rng$normal(n_groups, i, 1))
+        rng$normal(n_groups, i, 1)
       },
       density = function(x, by_group = FALSE) {
-        sigma <- exp(x[[1]])
-        mu <- x[-1]
-        z <- dnorm(mu, 2^i, sigma, log = TRUE)
+        z <- dnorm(x, 2^i, 1, log = TRUE)
         value <- sum(z)
         if (by_group) structure(value, "by_group" = z) else value
       },
-      parameter_groups = c(0, i))))
+      parameter_groups = i)))
 }
 
 
