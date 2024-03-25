@@ -26,6 +26,10 @@ reference:
     - mcstate_runner_parallel
     - mcstate_runner_serial
 
+  - subtitle: Tools
+    contents:
+    - mcstate_observer
+
   - title: Random numbers
     desc: >-
       Utilities for working with random numbers. This code is all

@@ -94,3 +94,11 @@ set_names <- function(x, nms) {
   names(x) <- nms
   x
 }
+
+
+all_same <- function(x) {
+  if (length(x) < 2) {
+    return(TRUE)
+  }
+  all(vlapply(x[-1], identical, x[[1]]))
+}

@@ -9,16 +9,17 @@
 ##'
 ##' @export
 mcstate_runner_serial <- function() {
-  run <- function(pars, model, sampler, n_steps, rng) {
+  run <- function(pars, model, sampler, observer, n_steps, rng) {
     lapply(
       seq_along(rng),
       function(i) {
-        mcstate_run_chain(pars[, i], model, sampler, n_steps, rng[[i]])
+        mcstate_run_chain(pars[, i], model, sampler, observer, n_steps,
+                          rng[[i]])
       })
   }
 
-  continue <- function(state, model, sampler, n_steps) {
-    lapply(state, mcstate_continue_chain, model, sampler, n_steps)
+  continue <- function(state, model, sampler, observer, n_steps) {
+    lapply(state, mcstate_continue_chain, model, sampler, observer, n_steps)
   }
 
   structure(list(run = run, continue = continue),
@@ -64,7 +65,7 @@ mcstate_runner_parallel <- function(n_workers) {
   ## get the advantage that the cluster startup happens asyncronously
   ## and may be ready by the time we actually pass any work onto it.
 
-  run <- function(pars, model, sampler, n_steps, rng) {
+  run <- function(pars, model, sampler, observer, n_steps, rng) {
     n_chains <- length(rng)
     cl <- parallel::makeCluster(min(n_chains, n_workers))
     on.exit(parallel::stopCluster(cl))
@@ -81,28 +82,32 @@ mcstate_runner_parallel <- function(n_workers) {
     pars_list <- asplit(pars, MARGIN = 2)
     rng_state <- lapply(rng, function(r) r$state())
 
+    args <- list(model = model,
+                 sampler = sampler,
+                 observer = observer,
+                 n_steps = n_steps)
+
     parallel::clusterMap(
       cl,
       mcstate_run_chain_parallel,
       pars = pars_list,
       rng = rng_state,
-      MoreArgs = list(model = model, sampler = sampler, n_steps = n_steps))
+      MoreArgs = args)
   }
   structure(list(run = run), class = "mcstate_runner")
 }
 
 
-## Later we could return the mutated rng state and set it back into
-## the sampler, if we needed to continue for any reason.
-mcstate_run_chain_parallel <- function(pars, model, sampler, n_steps, rng) {
+mcstate_run_chain_parallel <- function(pars, model, sampler, observer,
+                                       n_steps, rng) {
   rng <- mcstate_rng$new(rng)
-  mcstate_run_chain(pars, model, sampler, n_steps, rng)
+  mcstate_run_chain(pars, model, sampler, observer, n_steps, rng)
 }
 
 
-mcstate_run_chain <- function(pars, model, sampler, n_steps, rng) {
+mcstate_run_chain <- function(pars, model, sampler, observer, n_steps, rng) {
   r_rng_state <- get_r_rng_state()
-  chain_state <- sampler$initialise(pars, model, rng)
+  chain_state <- sampler$initialise(pars, model, observer, rng)
 
   if (!is.finite(chain_state$density)) {
     ## Ideally, we'd do slightly better than this; it might be worth
@@ -124,33 +129,40 @@ mcstate_run_chain <- function(pars, model, sampler, n_steps, rng) {
     cli::cli_abort("Chain does not have finite starting density")
   }
 
-  mcstate_run_chain2(chain_state, model, sampler, n_steps, rng, r_rng_state)
+  mcstate_run_chain2(chain_state, model, sampler, observer, n_steps,
+                     rng, r_rng_state)
 }
 
 
-mcstate_continue_chain <- function(state, model, sampler, n_steps) {
+mcstate_continue_chain <- function(state, model, sampler, observer, n_steps) {
   r_rng_state <- get_r_rng_state()
   rng <- mcstate_rng$new(seed = state$rng)
   sampler$set_internal_state(state$sampler)
   if (model$properties$is_stochastic) {
     model$rng_state$set(state$model_rng)
   }
-  mcstate_run_chain2(state$chain, model, sampler, n_steps, rng, r_rng_state)
+  mcstate_run_chain2(state$chain, model, sampler, observer, n_steps, rng,
+                     r_rng_state)
 }
 
 
-mcstate_run_chain2 <- function(chain_state, model, sampler, n_steps, rng,
-                               r_rng_state) {
+mcstate_run_chain2 <- function(chain_state, model, sampler, observer, n_steps,
+                               rng, r_rng_state) {
   initial <- chain_state$pars
   n_pars <- length(model$parameters)
+  has_observer <- !is.null(observer)
 
   history_pars <- matrix(NA_real_, n_pars, n_steps)
   history_density <- rep(NA_real_, n_steps)
+  history_observation <- if (has_observer) vector("list", n_steps) else NULL
 
   for (i in seq_len(n_steps)) {
-    chain_state <- sampler$step(chain_state, model, rng)
+    chain_state <- sampler$step(chain_state, model, observer, rng)
     history_pars[, i] <- chain_state$pars
     history_density[[i]] <- chain_state$density
+    if (!is.null(chain_state$observation)) {
+      history_observation[[i]] <- chain_state$observation
+    }
   }
 
   ## Pop the parameter names on last
@@ -158,6 +170,10 @@ mcstate_run_chain2 <- function(chain_state, model, sampler, n_steps, rng,
 
   ## I'm not sure about the best name for this
   details <- sampler$finalise(chain_state, model, rng)
+
+  if (has_observer) {
+    history_observation <- observer$finalise(history_observation)
+  }
 
   ## This list will hold things that we'll use internally but not
   ## surface to the user in the final object (or summarise them in
@@ -175,5 +191,6 @@ mcstate_run_chain2 <- function(chain_state, model, sampler, n_steps, rng,
        pars = history_pars,
        density = history_density,
        details = details,
+       observations = history_observation,
        internal = internal)
 }

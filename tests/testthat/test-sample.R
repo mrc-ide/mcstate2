@@ -7,6 +7,8 @@ test_that("can validate sample inputs", {
                "Expected 'sampler' to be an 'mcstate_sampler'")
   expect_error(mcstate_sample(model, sampler, 100, runner = TRUE),
                "Expected 'runner' to be an 'mcstate_runner'")
+  expect_error(mcstate_sample(model, sampler, 100, observer = TRUE),
+               "Expected 'observer' to be an 'mcstate_observer'")
   expect_error(mcstate_sample(model, sampler, 100, c(1, 2)),
                "Unexpected length for vector 'initial' (given 2, expected 1)",
                fixed = TRUE)
@@ -17,8 +19,9 @@ test_that("sampler return value contains history", {
   model <- ex_simple_gamma1()
   sampler <- mcstate_sampler_random_walk(vcv = diag(1) * 0.01)
   res <- mcstate_sample(model, sampler, 100, 1)
+  ## TODO: what is in details?
   expect_setequal(names(res),
-                  c("pars", "density", "initial", "details"))
+                  c("pars", "density", "initial", "details", "observations"))
   expect_equal(dim(res$pars), c(1, 100, 1))
   expect_equal(dimnames(res$pars), list("gamma", NULL, NULL))
   expect_equal(dim(res$density), c(100, 1))

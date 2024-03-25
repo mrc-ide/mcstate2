@@ -31,6 +31,11 @@
 ##'   `parallel` package to run chains in parallel.  If you only run
 ##'   one chain then this argument is best left alone.
 ##'
+##' @param observer An observer, created via [mcstate_observer], which
+##'   you can use to extract additional information from your model at
+##'   points included in the chain (for example, trajectories from a
+##'   dynamical model).
+##'
 ##' @param restartable Logical, indicating if the chains should be
 ##'   restartable.  This will add additional data to the chains
 ##'   object.
@@ -59,7 +64,7 @@
 ##'
 ##' @export
 mcstate_sample <- function(model, sampler, n_steps, initial = NULL,
-                           n_chains = 1L, runner = NULL,
+                           n_chains = 1L, runner = NULL, observer = NULL,
                            restartable = FALSE) {
   if (!inherits(model, "mcstate_model")) {
     cli::cli_abort("Expected 'model' to be an 'mcstate_model'",
@@ -72,6 +77,10 @@ mcstate_sample <- function(model, sampler, n_steps, initial = NULL,
   if (is.null(runner)) {
     runner <- mcstate_runner_serial()
   }
+  if (!is.null(observer) && !inherits(observer, "mcstate_observer")) {
+    cli::cli_abort("Expected 'observer' to be an 'mcstate_observer'",
+                   arg = "observer")
+  }
   if (!inherits(runner, "mcstate_runner")) {
     cli::cli_abort("Expected 'runner' to be an 'mcstate_runner'",
                    arg = "runner")
@@ -79,11 +88,11 @@ mcstate_sample <- function(model, sampler, n_steps, initial = NULL,
 
   rng <- initial_rng(n_chains)
   pars <- initial_parameters(initial, model, rng, environment())
-  res <- runner$run(pars, model, sampler, n_steps, rng)
+  res <- runner$run(pars, model, sampler, observer, n_steps, rng)
 
-  samples <- combine_chains(res)
+  samples <- combine_chains(res, observer)
   if (restartable) {
-    samples$restart <- restart_data(res, model, sampler, runner)
+    samples$restart <- restart_data(res, model, sampler, observer, runner)
   }
   samples
 }
@@ -121,13 +130,14 @@ mcstate_sample_continue <- function(samples, n_steps, restartable = FALSE) {
   state <- samples$restart$state
   model <- samples$restart$model
   sampler <- samples$restart$sampler
+  observer <- samples$restart$observer
 
-  res <- runner$continue(state, model, sampler, n_steps)
+  res <- runner$continue(state, model, sampler, observer, n_steps)
 
-  samples <- append_chains(samples, combine_chains(res))
+  samples <- append_chains(samples, combine_chains(res, observer), observer)
 
   if (restartable) {
-    samples$restart <- restart_data(res, model, sampler, runner)
+    samples$restart <- restart_data(res, model, sampler, observer, runner)
   }
   samples
 }
@@ -234,7 +244,7 @@ initial_parameters <- function(initial, model, rng, call = NULL) {
 }
 
 
-combine_chains <- function(res) {
+combine_chains <- function(res, observer = NULL) {
   pars <- array_bind(arrays = lapply(res, "[[", "pars"), after = 2)
   density <- array_bind(arrays = lapply(res, "[[", "density"), after = 1)
   details <- lapply(res, "[[", "details")
@@ -246,6 +256,12 @@ combine_chains <- function(res) {
     initial <- rbind(initial, deparse.level = 0)
   }
   rownames(initial) <- rownames(pars)
+
+  if (is.null(observer)) {
+    observations <- NULL
+  } else {
+    observations <- observer$combine(lapply(res, "[[", "observations"))
+  }
 
   used_r_rng <- vlapply(res, function(x) x$internal$used_r_rng)
   if (any(used_r_rng)) {
@@ -260,17 +276,24 @@ combine_chains <- function(res) {
   samples <- list(pars = pars,
                   density = density,
                   initial = initial,
-                  details = details)
+                  details = details,
+                  observations = observations)
   class(samples) <- "mcstate_samples"
   samples
 }
 
 
-append_chains <- function(prev, curr) {
+append_chains <- function(prev, curr, observer = NULL) {
+  if (is.null(observer)) {
+    observations <- NULL
+  } else {
+    observations <- observer$append(prev$observations, curr$observations)
+  }
   samples <- list(pars = array_bind(prev$pars, curr$pars, on = 2),
                   density = array_bind(prev$density, curr$density, on = 1),
                   initial = prev$initial,
-                  details = curr$details)
+                  details = curr$details,
+                  observations = observations)
   class(samples) <- "mcstate_samples"
   samples
 }
@@ -282,10 +305,11 @@ initial_rng <- function(n_chains, seed = NULL) {
 }
 
 
-restart_data <- function(res, model, sampler, runner) {
+restart_data <- function(res, model, sampler, observer, runner) {
   list(state = lapply(res, function(x) x$internal$state),
        model = model,
        sampler = sampler,
+       observer = observer,
        runner = runner)
 }
 

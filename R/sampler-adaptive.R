@@ -113,7 +113,7 @@ mcstate_sampler_adaptive <- function(initial_vcv,
   ## scaling factor, weight and autocorrelations.
   internal <- new.env()
 
-  initialise <- function(pars, model, rng) {
+  initialise <- function(pars, model, observer, rng) {
     require_deterministic(model,
                           "Can't use adaptive sampler with stochastic models")
     internal$weight <- 0
@@ -136,10 +136,10 @@ mcstate_sampler_adaptive <- function(initial_vcv,
     internal$included <- integer()
     internal$scaling_history <- internal$scaling
 
-    initialise_state(pars, model, rng)
+    initialise_state(pars, model, observer, rng)
   }
 
-  step <- function(state, model, rng) {
+  step <- function(state, model, observer, rng) {
     proposal_vcv <-
       calc_proposal_vcv(internal$scaling, internal$vcv, internal$weight,
                         initial_vcv, initial_vcv_weight)
@@ -153,8 +153,8 @@ mcstate_sampler_adaptive <- function(initial_vcv,
 
     accept <- u < accept_prob
     if (accept) {
-      state$pars <- pars_next
-      state$density <- density_next
+      state <- update_state(state, pars_next, density_next, model, observer,
+                            rng)
     }
 
     internal$iteration <- internal$iteration + 1

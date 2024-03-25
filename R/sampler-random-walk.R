@@ -31,7 +31,7 @@ mcstate_sampler_random_walk <- function(proposal = NULL, vcv = NULL) {
     proposal <- make_rmvnorm(vcv)
   }
 
-  initialise <- function(pars, model, rng) {
+  initialise <- function(pars, model, observer, rng) {
     if (!is.null(vcv)) {
       n_pars <- length(model$parameters)
       n_vcv <- nrow(vcv)
@@ -40,16 +40,16 @@ mcstate_sampler_random_walk <- function(proposal = NULL, vcv = NULL) {
           "Incompatible length parameters ({n_pars}) and vcv ({n_vcv})")
       }
     }
-    initialise_state(pars, model, rng)
+    initialise_state(pars, model, observer, rng)
   }
 
-  step <- function(state, model, rng) {
+  step <- function(state, model, observer, rng) {
     pars_next <- proposal(state$pars, rng)
     density_next <- model$density(pars_next)
 
     if (density_next - state$density > log(rng$random_real(1))) {
-      state$pars <- pars_next
-      state$density <- density_next
+      state <- update_state(state, pars_next, density_next,
+                            model, observer, rng)
     }
     state
   }

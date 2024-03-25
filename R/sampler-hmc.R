@@ -28,7 +28,7 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     check_vcv(vcv, call = environment())
   }
 
-  initialise <- function(pars, model, rng) {
+  initialise <- function(pars, model, observer, rng) {
     require_deterministic(model, "Can't use HMC with stochastic models")
     require_gradient(model, "Can't use HMC without a gradient")
 
@@ -46,10 +46,10 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     if (debug) {
       internal$history <- list()
     }
-    initialise_state(pars, model, rng)
+    initialise_state(pars, model, observer, rng)
   }
 
-  step <- function(state, model, rng) {
+  step <- function(state, model, observer, rng) {
     ## Just a helper for now
     compute_gradient <- function(x) {
       internal$transform$deriv(x) * model$gradient(x)
@@ -103,8 +103,8 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     u <- rng$random_real(1)
     accept <- u < exp(density_next - state$density + energy - energy_next)
     if (accept) {
-      state$density <- density_next
-      state$pars <- pars_next
+      state <- update_state(state, pars_next, density_next, model, observer,
+                            rng)
     }
 
     if (debug) {

@@ -48,3 +48,12 @@ test_that("can get generalised array names", {
   expect_equal(dimnames2(v), list(letters[1:6]))
   expect_equal(dimnames2(m), list(letters[1:2], letters[3:5]))
 })
+
+
+test_that("can test if things are the same", {
+  expect_true(all_same(integer()))
+  expect_true(all_same(1))
+  expect_true(all_same(c(1, 1)))
+  expect_true(all_same(rep(1, 10)))
+  expect_false(all_same(c(1, 1, 2, 1)))
+})

@@ -16,7 +16,7 @@ ex_simple_gamma1 <- function(shape = 1, rate = 1) {
 
 
 ex_dust_sir <- function(n_particles = 100, n_threads = 1,
-                        deterministic = FALSE) {
+                        deterministic = FALSE, save_trajectories = FALSE) {
   testthat::skip_if_not_installed("dust")
   sir <- dust::dust_example("sir")
 
@@ -34,11 +34,28 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
   model <- sir$new(list(), 0, n_particles, seed = 1L, n_threads = n_threads,
                    deterministic = deterministic)
   model$set_data(dust::dust_data(dat))
+  model$set_index(c(2, 4))
 
   prior_beta_shape <- 1
   prior_beta_rate <- 1 / 0.5
   prior_gamma_shape <- 1
   prior_gamma_rate <- 1 / 0.5
+
+  trajectories <- NULL
+
+  ## In the new dust wrapper we'll need to make this nicer; I think
+  ## that this is pretty painful atm because we wrap via the particle
+  ## filter method in mcstate1.  This version replicates most of what
+  ## we need though, which is some subset of the model
+  details <- function(i, j) {
+    if (save_trajectories) {
+      traj <- trajectories[, i, , drop = FALSE]
+      dim(traj) <- dim(traj)[-2]
+    } else {
+      traj <- NULL
+    }
+    list(trajectories = traj, state = model$state()[, i])
+  }
 
   density <- function(x) {
     beta <- x[[1]]
@@ -50,7 +67,11 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
         pars = list(beta = x[[1]], gamma = x[[2]]),
         time = 0,
         set_initial_state = TRUE)
-      ll <- model$filter()$log_likelihood
+      res <- model$filter(save_trajectories = save_trajectories)
+      if (save_trajectories) {
+        trajectories <<- res$trajectories
+      }
+      ll <- res$log_likelihood
     } else {
       ll <- -Inf
     }
@@ -77,7 +98,9 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
   }
 
   mcstate_model(
-    list(density = density,
+    list(model = model,
+         details = details,
+         density = density,
          direct_sample = direct_sample,
          parameters = c("beta", "gamma"),
          domain = cbind(c(0, 0), c(Inf, Inf)),
