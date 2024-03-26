@@ -29,7 +29,7 @@ test_that("validate vcv inputs on construction of sampler", {
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = TRUE)),
-    "Expected 'vcv$groups' to be a matrix",
+    "Expected 'vcv$groups' to be a list",
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = list())),
