@@ -1,0 +1,73 @@
+---
+title: "Probabilistic DSL"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Probabilistic DSL}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`mcstate2` includes a probabilistic programming language DSL that is inspired by stan and Statistical Rethinking.  It is designed to make some tasks a bit easier, particularly when defining priors for your model.  We expect that this DSL is not sufficiently advanced to represent most interesting models but it may get more clever and flexible in future.
+
+# Some simple examples
+
+In chapter 4 of Statistical Rethinking, we build a regression model of height with parameters $\alpha$, $\beta$ and $\sigma$.  We can define the model for the prior probability of this model in mcstate by running
+
+```{r}
+prior <- mcstate_ppl({
+  alpha ~ Normal(178, 20)
+  beta ~ Normal(0, 10)
+  sigma ~ Uniform(0, 50)
+})
+```
+
+This will define a new [mcstate_model()] object that represents the prior, but with all the bits that we might need depending on how we want to use it:
+
+We have model parameters
+
+```{r}
+prior$parameters
+```
+
+These are defined in the order that they appear in your definition (so `alpha` is first and `sigma` is last)
+
+The model domain can be derived
+
+```{r}
+prior$domain
+```
+
+I'm not completely sure that we can derive this for all models (most obviously for a model where the bounds of a uniform distribution vary with another parameter).
+
+We can draw samples from the model if we provide an [mcstate_rng] object
+
+```{r}
+rng <- mcstate_rng()
+theta <- prior$sample(rng)
+theta
+```
+
+We can compute the (log) density at a point in parameter space
+
+```{r}
+prior$density(theta)
+```
+
+We can also compute the gradient of the log density with respect to the parameters
+
+```{r}
+prior$gradient(theta)
+```
+
+The computed properties for the model are:
+
+```{r}
+prior$properties
+```
