@@ -27,14 +27,15 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
   if (!is.null(vcv$base)) {
     check_vcv(vcv$base, call = environment())
   }
-  if (length(vcv$groups) < 1) {
-    cli::cli_abort("Expected at least 1 group")
-  }
   if (!is.list(vcv$groups)) {
     cli::cli_abort("Expected 'vcv$groups' to be a list")
   }
-  for (i in seq_along(vcv$base)) {
-    check_vcv(vcv$groups[[i]], call = environment())
+  if (length(vcv$groups) < 1) {
+    cli::cli_abort("Expected 'vcv$groups' to have at least one element")
+  }
+  for (i in seq_along(vcv$groups)) {
+    check_vcv(vcv$groups[[i]], name = sprintf("vcv$groups[%d]", i),
+              call = environment())
   }
 
   internal <- new.env(parent = emptyenv())
@@ -140,18 +141,22 @@ check_parameter_groups <- function(x, n_pars, name = deparse(substitute(x)),
   }
   if (length(x) != n_pars) {
     cli::cli_abort(
-      "Expected '{name}' to have length {n_pars}, but was {length(x)}",
+      paste("Expected '{name}' to have length {n_pars}, but it had length",
+            "{length(x)}"),
       call = call)
+  }
+  if (min(x) < 0) {
+    cli::cli_abort("Invalid negative group in '{name}'", call = call)
   }
   n_groups <- max(x)
   msg <- setdiff(seq_len(n_groups), x)
   if (length(msg) > 0) {
-    # TODO: Better error here that explains the situation better and
-    # offers a hint as to what to do.
-    cli::cli_abort("Missing groups from '{name}'", call = call)
-  }
-  if (min(x) < 0) {
-    cli::cli_abort("Invalid negative groups in '{name}'", call = call)
+    cli::cli_abort(
+      c("Missing groups from '{name}'",
+        i = paste("I expected all integers from 1 to {n_groups} to be present",
+                  "in your parameter groups vector, but you are missing",
+                  "{msg}")),
+      call = call)
   }
 }
 

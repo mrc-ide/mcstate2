@@ -165,3 +165,28 @@ test_that("stochastic models need an rng setting function", {
                          mcstate_model_properties(is_stochastic = FALSE)))
   expect_null(res$set_rng_state)
 })
+
+
+test_that("ignore groups if requested", {
+  m <- mcstate_model(
+    list(density = identity, parameters = "x"),
+    mcstate_model_properties(has_parameter_groups = FALSE))
+  expect_false(m$properties$has_parameter_groups)
+  expect_null(m$parameter_groups)
+
+  m <- mcstate_model(
+    list(density = identity, parameters = "x", parameter_groups = 1),
+    mcstate_model_properties(has_parameter_groups = FALSE))
+  expect_false(m$properties$has_parameter_groups)
+  expect_null(m$parameter_groups)
+})
+
+
+test_that("If parameter groups are present, then density requires arg", {
+  expect_error(
+    mcstate_model(
+      list(density = identity, parameters = "x", parameter_groups = 1),
+      mcstate_model_properties(has_parameter_groups = TRUE)),
+    "Expected 'model$density' to have an argument 'by_group'",
+    fixed = TRUE)
+})
