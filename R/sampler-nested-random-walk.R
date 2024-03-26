@@ -45,23 +45,28 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
     }
     internal$proposal <- nested_proposal(vcv, model$parameter_groups)
 
-    ## This looks different once the stochastic PR is merged
-    ## if (isTRUE(model$properties$is_stochastic)) {
-    ##   model$model$set_rng_state(rng)
-    ## }
+    initialise_rng_state(model, rng)
     density <- model$density(pars, by_group = TRUE)
     density_by_group <- attr(density, "by_group")
+    n_groups <- max(model$parameter_groups)
 
     if (is.null(density_by_group)) {
       cli::cli_abort(
-        "model$density(x, by_group = TRUE) did not produce a 'by_group' attribute")
+        c(paste("model$density(x, by_group = TRUE) did not produce a",
+                "density with a 'by_group' attribute"),
+          i = paste("I expected an attribute 'by_group' with {n_groups}",
+                    "elements corresponding to parameter groups to be",
+                    "included with your density")))
     }
-    if (length(density_by_group) != max(model$parameter_groups)) {
+    if (length(density_by_group) != n_groups) {
         cli::cli_abort(
-        "model$density(x, by_group = TRUE) produced a 'by_group' attribute with incorrect length")
+          paste("model$density(x, by_group = TRUE) produced a 'by_group'",
+                "attribute with incorrect length {length(density_by_group)}",
+                "but I expected length {n_groups}"))
     }
+
     internal$density_by_group <- density_by_group
-    list(pars = pars, density = density)
+    list(pars = pars, density = c(density))
   }
 
   ## There are probably different modes that this could run in, they'd
@@ -101,7 +106,7 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
         density_by_group_next <- attr(density_next, "by_group")
       }
       state$pars <- pars_next
-      state$density <- density_next
+      state$density <- c(density_next)
       internal$density_by_group <- density_by_group_next
     }
     state

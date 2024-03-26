@@ -5,7 +5,8 @@ test_that("can create a minimal model", {
   expect_equal(m$properties,
                mcstate_model_properties(has_gradient = FALSE,
                                         has_direct_sample = FALSE,
-                                        is_stochastic = FALSE))
+                                        is_stochastic = FALSE,
+                                        has_parameter_groups = FALSE))
   expect_equal(m$domain, rbind(a = c(-Inf, Inf)))
   expect_equal(m$parameters, "a")
   expect_equal(m$density(0), dnorm(0, log = TRUE))
@@ -17,7 +18,8 @@ test_that("can create a more interesting model", {
   expect_equal(m$properties,
                mcstate_model_properties(has_gradient = TRUE,
                                         has_direct_sample = TRUE,
-                                        is_stochastic = FALSE))
+                                        is_stochastic = FALSE,
+                                        has_parameter_groups = FALSE))
   expect_equal(m$domain, rbind(gamma = c(0, Inf)))
   expect_equal(m$parameters, "gamma")
   expect_equal(m$density(1), dgamma(1, 1, 1, log = TRUE))
