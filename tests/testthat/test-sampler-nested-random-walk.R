@@ -43,3 +43,45 @@ test_that("validate vcv inputs on construction of sampler", {
   vcv <- list(base = diag(1), groups = list(diag(2), diag(3)))
   expect_s3_class(mcstate_sampler_nested_random_walk(vcv), "mcstate_sampler")
 })
+
+
+test_that("can't use nested sampler with models that are not nested", {
+  m <- ex_simple_gaussian(diag(3))
+  vcv <- list(base = diag(1), groups = list(diag(2), diag(3)))
+  s <- mcstate_sampler_nested_random_walk(vcv)
+  expect_error(
+    mcstate_sample(m, s, 100),
+    "Your model does not have parameter groupings")
+})
+
+
+test_that("Validate that the model produces correct parameter groupings", {
+  m <- mcstate_model(list(
+    parameters = c("a", "b", "c"),
+    density = function(x, by_group = TRUE) {
+      x
+    },
+    parameter_groups = c(0, 1, 2)))
+  s <- mcstate_sampler_nested_random_walk(
+    list(base = diag(1), groups = list(diag(1), diag(1))))
+  expect_error(
+    mcstate_sample(m, s, 100, c(0, 0, 0)),
+    "model$density(x, by_group = TRUE) did not produce a density",
+    fixed = TRUE)
+})
+
+
+test_that("Validate length of by group output", {
+  m <- mcstate_model(list(
+    parameters = c("a", "b", "c"),
+    density = function(x, by_group = TRUE) {
+      structure(x, by_group = rep(0, 5))
+    },
+    parameter_groups = c(0, 1, 2)))
+  s <- mcstate_sampler_nested_random_walk(
+    list(base = diag(1), groups = list(diag(1), diag(1))))
+  expect_error(
+    mcstate_sample(m, s, 100, c(0, 0, 0)),
+    "model$density(x, by_group = TRUE) produced a 'by_group' attribute with",
+    fixed = TRUE)
+})
