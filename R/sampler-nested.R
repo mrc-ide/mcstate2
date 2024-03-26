@@ -64,12 +64,15 @@ mcstate_sampler_nested_random_walk <- function(vcv) {
     list(pars = pars, density = density)
   }
 
-  ## TODO: There are probably different modes that this could run in,
-  ## they'd be fairly easy to change.  This one would correspond to
-  ## some sort of "full update" mode where everything is done within a
-  ## step, but we could also do one where we allow for picking one
-  ## update type with some schedule or probability and applying that,
-  ## which would allow for faster movement of some part of the chain.
+  ## There are probably different modes that this could run in, they'd
+  ## be fairly easy to change.  This one would correspond to some sort
+  ## of "full update" mode where everything is done within a step, but
+  ## we could also do one where we allow for picking one update type
+  ## with some schedule or probability and applying that, which would
+  ## allow for faster movement of some part of the chain.  We could
+  ## handle this by additional arguments to the constructor, then
+  ## either changing the behaviour of the step function or swapping in
+  ## a different version.
   step <- function(state, model, rng) {
     if (!is.null(internal$proposal$base)) {
       pars_next <- internal$proposal$base(state$pars, rng)
