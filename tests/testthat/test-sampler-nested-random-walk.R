@@ -85,3 +85,50 @@ test_that("Validate length of by group output", {
     "model$density(x, by_group = TRUE) produced a 'by_group' attribute with",
     fixed = TRUE)
 })
+
+
+test_that("can build nested proposal functions", {
+  v <- matrix(c(1, .9999, .9999, 1), 2, 2)
+  vcv <- list(base = NULL,
+              groups = list(v, v / 100))
+  g <- c(1, 1, 2, 2)
+  f <- nested_proposal(vcv, g)
+
+  expect_null(f$base)
+  expect_true(is.function(f$groups))
+
+  r <- mcstate_rng$new(seed = 1)
+  y <- replicate(10000, f$groups(rep(0, 4), r))
+  v <- var(t(y))
+  cmp <- rbind(c(1, 1, 0, 0),
+               c(1, 1, 0, 0),
+               c(0, 0, 0.01, 0.01),
+               c(0, 0, 0.01, 0.01))
+  expect_equal(v, cmp, tolerance = 1e-2)
+})
+
+
+test_that("can build nested proposal functions with base components", {
+  v <- matrix(c(1, .5, .5, 1), 2, 2)
+  vcv <- list(base = v / 10,
+              groups = list(v, v / 100))
+  f <- nested_proposal(vcv, c(0, 0, 1, 1, 2, 2))
+  g <- nested_proposal(list(base = NULL, groups = vcv$groups), c(1, 1, 2, 2))
+
+  expect_true(is.function(f$base))
+  expect_true(is.function(f$groups))
+
+  r <- mcstate_rng$new(seed = 1)
+  y <- replicate(20000, f$base(1:6, r))
+  expect_equal(y[3:6, ], matrix(3:6, 4, 20000))
+  expect_equal(var(t(y[1:2, ])), vcv$base, tolerance = 0.01)
+
+  r1 <- mcstate_rng$new(seed = 1)
+  r2 <- mcstate_rng$new(seed = 1)
+  expect_equal(
+    replicate(100, f$groups(1:6, r1)[3:6]),
+    replicate(100, g$groups(3:6, r2)))
+
+  expect_equal(replicate(100, f$groups(1:6, r1)[1:2]),
+               matrix(1:2, 2, 100))
+})
