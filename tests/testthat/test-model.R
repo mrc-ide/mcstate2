@@ -5,7 +5,8 @@ test_that("can create a minimal model", {
   expect_equal(m$properties,
                mcstate_model_properties(has_gradient = FALSE,
                                         has_direct_sample = FALSE,
-                                        is_stochastic = FALSE))
+                                        is_stochastic = FALSE,
+                                        has_parameter_groups = FALSE))
   expect_equal(m$domain, rbind(a = c(-Inf, Inf)))
   expect_equal(m$parameters, "a")
   expect_equal(m$density(0), dnorm(0, log = TRUE))
@@ -17,7 +18,8 @@ test_that("can create a more interesting model", {
   expect_equal(m$properties,
                mcstate_model_properties(has_gradient = TRUE,
                                         has_direct_sample = TRUE,
-                                        is_stochastic = FALSE))
+                                        is_stochastic = FALSE,
+                                        has_parameter_groups = FALSE))
   expect_equal(m$domain, rbind(gamma = c(0, Inf)))
   expect_equal(m$parameters, "gamma")
   expect_equal(m$density(1), dgamma(1, 1, 1, log = TRUE))
@@ -162,4 +164,29 @@ test_that("stochastic models need an rng setting function", {
     res <- mcstate_model(m,
                          mcstate_model_properties(is_stochastic = FALSE)))
   expect_null(res$set_rng_state)
+})
+
+
+test_that("ignore groups if requested", {
+  m <- mcstate_model(
+    list(density = identity, parameters = "x"),
+    mcstate_model_properties(has_parameter_groups = FALSE))
+  expect_false(m$properties$has_parameter_groups)
+  expect_null(m$parameter_groups)
+
+  m <- mcstate_model(
+    list(density = identity, parameters = "x", parameter_groups = 1),
+    mcstate_model_properties(has_parameter_groups = FALSE))
+  expect_false(m$properties$has_parameter_groups)
+  expect_null(m$parameter_groups)
+})
+
+
+test_that("If parameter groups are present, then density requires arg", {
+  expect_error(
+    mcstate_model(
+      list(density = identity, parameters = "x", parameter_groups = 1),
+      mcstate_model_properties(has_parameter_groups = TRUE)),
+    "Expected 'model$density' to have an argument 'by_group'",
+    fixed = TRUE)
 })

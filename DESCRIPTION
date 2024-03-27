@@ -18,7 +18,8 @@ BugReports: https://github.com/mrc-ide/mcstate2/issues
 Imports:
     R6,
     cli,
-    parallel
+    parallel,
+    rlang
 LinkingTo:
     cpp11
 Suggests:

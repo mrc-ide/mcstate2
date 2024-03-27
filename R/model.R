@@ -1,7 +1,7 @@
 ##' Describe properties of a model.  Use of this function is optional,
 ##' but you can pass the return value of this as the `properties`
-##' argument of mcstate_model to enforce that your model does actually have these
-##' properties.
+##' argument of mcstate_model to enforce that your model does actually
+##' have these properties.
 ##'
 ##' @title Describe model properties
 ##'
@@ -17,16 +17,26 @@
 ##'   stochastic.  Stochastic models must supply `set_rng_state` and
 ##'   `get_rng_state` methods.
 ##'
+##' @param has_parameter_groups Logical, indicating that the model can
+##'   be decomposed into parameter groups which are independent of
+##'   each other.  This is indicated by using the `parameter_groups`
+##'   field within the `model` object passed to [mcstate_model], and
+##'   by the presence of a `by_group` argument to `density` and (later
+##'   we may also support this in `gradient`).  Use `NULL` (the
+##'   default) to detect this from the model.
+##'
 ##' @return A list of class `mcstate_model_properties` which should
 ##'   not be modified.
 ##'
 ##' @export
 mcstate_model_properties <- function(has_gradient = NULL,
                                      has_direct_sample = NULL,
-                                     is_stochastic = NULL) {
+                                     is_stochastic = NULL,
+                                     has_parameter_groups = NULL) {
   ret <- list(has_gradient = has_gradient,
               has_direct_sample = has_direct_sample,
-              is_stochastic = is_stochastic)
+              is_stochastic = is_stochastic,
+              has_parameter_groups = has_parameter_groups)
   class(ret) <- "mcstate_model_properties"
   ret
 }
@@ -99,6 +109,14 @@ mcstate_model_properties <- function(has_gradient = NULL,
 ##'   provided if `set_rng_state` is present.  Must return the random
 ##'   number state, which is a raw vector (potentially quite long).
 ##'
+##' * `parameter_groups`: Optionally, an integer vector indicating
+##'   parameter group membership.  The format here may change
+##'   (especially if we explore more complex nestings) but at present
+##'   parameters with group 0 affect everything (so are accepted or
+##'   rejected as a whole), while parameters in groups 1 to `n` are
+##'   indepenent (for example, changing the parameters in group 2 does
+##'   not affect the density of parameters proposed in group 3).
+##'
 ##' @title Create basic model
 ##'
 ##' @param model A list or environment with elements as described in
@@ -111,6 +129,7 @@ mcstate_model_properties <- function(has_gradient = NULL,
 ##'
 ##' * `model`: The model as provided
 ##' * `parameters`: The parameter name vector
+##' * `parameter_groups`: The parameter groups
 ##' * `domain`: The parameter domain matrix, named with your parameters
 ##' * `direct_sample`: The `direct_sample` function, if provided by the model
 ##' * `gradient`: The `gradient` function, if provided by the model
@@ -119,6 +138,7 @@ mcstate_model_properties <- function(has_gradient = NULL,
 ##'     * `has_gradient`: the model can compute its gradient
 ##'     * `has_direct_sample`: the model can sample from parameters space
 ##'     * `is_stochastic`: the model will behave stochastically
+##'     * `has_parameter_groups`: The model has separable parameter groups
 ##'
 ##' @export
 mcstate_model <- function(model, properties = NULL) {
@@ -131,14 +151,17 @@ mcstate_model <- function(model, properties = NULL) {
   gradient <- validate_model_gradient(model, properties, call)
   direct_sample <- validate_model_direct_sample(model, properties, call)
   rng_state <- validate_model_rng_state(model, properties, call)
+  parameter_groups <- validate_model_parameter_groups(model, properties, call)
 
   ## Update properties based on what we found:
   properties$has_gradient <- !is.null(gradient)
   properties$has_direct_sample <- !is.null(direct_sample)
   properties$is_stochastic <- !is.null(rng_state$set)
+  properties$has_parameter_groups <- !is.null(parameter_groups)
 
   ret <- list(model = model,
               parameters = parameters,
+              parameter_groups = parameter_groups,
               domain = domain,
               density = density,
               gradient = gradient,
@@ -282,6 +305,26 @@ validate_model_rng_state <- function(model, properties, call) {
   cli::cli_abort(
     c(msg, i = hint),
     arg = "model", call = call)
+}
+
+
+validate_model_parameter_groups <- function(model, properties, call) {
+  if (isFALSE(properties$has_parameter_groups)) {
+    return(NULL)
+  }
+  parameter_groups <- model$parameter_groups
+  if (is.null(properties$parameter_groups) && is.null(parameter_groups)) {
+    return(NULL)
+  }
+  ## Here, we're not reporting intent very well; we throw about the
+  ## issue but not about how to circumvent it with properties
+  check_parameter_groups(parameter_groups, length(model$parameters),
+                         name = "model$parameter_groups", call = call)
+  if (!("by_group" %in% names(formals(model$density)))) {
+    cli::cli_abort("Expected 'model$density' to have an argument 'by_group'",
+                   call = call)
+  }
+  parameter_groups
 }
 
 
