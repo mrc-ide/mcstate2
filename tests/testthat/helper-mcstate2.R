@@ -35,6 +35,37 @@ ex_simple_nested <- function(n_groups) {
 }
 
 
+## This is example is really stupid and does not really help test much
+## except that the code can run at all. Ed/Marc; can you think of a
+## reasonable example here please?
+ex_simple_nested_with_base <- function(n_groups) {
+  e <- new.env(parent = topenv())
+  e$sigma <- 5
+  e$mu <- rnorm(n_groups, 0, e$sigma)
+  e$n_groups <- n_groups
+  with(
+    e,
+    mcstate_model(list(
+      parameters = c("sigma", paste0("mu_", seq_len(n_groups))),
+      direct_sample = function(rng) {
+        sigma <- rng$uniform(1, 0, 10)
+        c(sigma, rng$normal(n_groups, 0, sigma))
+      },
+      density = function(x, by_group = FALSE) {
+        sigma <- x[[1]]
+        if (sigma <= 0) {
+          z <- rep(-Inf, length(x) - 1)
+        } else {
+          z <- dnorm(x[-1], 0, x[[1]], log = TRUE)
+        }
+        value <- sum(z) + dunif(x[[1]], 0, 10, log = TRUE)
+        if (by_group) structure(value, "by_group" = z) else value
+      },
+      parameter_groups = c(0, seq_len(n_groups)),
+      mu = mu)))
+}
+
+
 ex_dust_sir <- function(n_particles = 100, n_threads = 1,
                         deterministic = FALSE) {
   testthat::skip_if_not_installed("dust")

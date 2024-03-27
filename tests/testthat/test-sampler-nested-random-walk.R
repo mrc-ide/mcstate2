@@ -165,3 +165,16 @@ test_that("can continue nested sampler correctly", {
 
   expect_equal(res2b, res1)
 })
+
+
+test_that("can run a sampler with shared parameters", {
+  set.seed(1)
+  ng <- 5
+  m <- ex_simple_nested_with_base(ng)
+  s <- mcstate_sampler_nested_random_walk(
+    list(base = diag(1), groups = rep(list(diag(1)), ng)))
+  res <- mcstate_sample(m, s, 100)
+  ## This is not great, until we get a real example we can use; but it
+  ## does test that the sampler runs, and that it mixes.
+  expect_true(length(unique(res$pars[1, , ])) > 1)
+})
