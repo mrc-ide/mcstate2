@@ -146,3 +146,22 @@ test_that("validate that the proposal and model are compatible", {
     nested_proposal(vcv, c(0, 0, 1, 1, 2, 2, 3, 3, 3)),
     "Incompatible number of parameters within parameter group")
 })
+
+
+test_that("can continue nested sampler correctly", {
+  set.seed(1)
+  ng <- 3
+  m <- ex_simple_nested(ng)
+  v <- list(base = NULL,
+            groups = rep(list(matrix(1)), ng))
+  sampler <- mcstate_sampler_nested_random_walk(v)
+
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 30, n_chains = 3, restartable = TRUE)
+
+  set.seed(1)
+  res2a <- mcstate_sample(m, sampler, 10, n_chains = 3, restartable = TRUE)
+  res2b <- mcstate_sample_continue(res2a, 20, restartable = TRUE)
+
+  expect_equal(res2b, res1)
+})
