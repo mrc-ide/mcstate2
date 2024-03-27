@@ -213,8 +213,6 @@ nested_proposal <- function(vcv, parameter_groups, call = NULL) {
         i = paste("Your model has {n_groups} parameter groups, but",
                   "'vcv$groups' has {length(vcv$groups)} groups")),
       call = call)
-
-    cli::cli_abort("Incorrect number of groups in vcv$groups") # untested
   }
   n_pars_by_group <- lengths(i_group)
   n_pars_by_group_vcv <- vnapply(vcv$groups, nrow)
