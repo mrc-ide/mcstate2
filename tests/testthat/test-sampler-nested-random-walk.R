@@ -132,3 +132,17 @@ test_that("can build nested proposal functions with base components", {
   expect_equal(replicate(100, f$groups(1:6, r1)[1:2]),
                matrix(1:2, 2, 100))
 })
+
+
+test_that("validate that the proposal and model are compatible", {
+  vcv <- list(base = diag(2), groups = list(diag(1), diag(2), diag(3)))
+  expect_error(
+    nested_proposal(vcv, c(1, 2, 2, 3, 3, 3)),
+    "Incompatible number of base parameters in your model and sampler")
+  expect_error(
+    nested_proposal(vcv, c(0, 0, 1:5)),
+    "Incompatible number of parameter groups in your model and sampler")
+  expect_error(
+    nested_proposal(vcv, c(0, 0, 1, 1, 2, 2, 3, 3, 3)),
+    "Incompatible number of parameters within parameter group")
+})

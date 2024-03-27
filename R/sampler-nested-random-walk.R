@@ -164,18 +164,36 @@ check_parameter_groups <- function(x, n_pars, name = deparse(substitute(x)),
 nested_proposal <- function(vcv, parameter_groups, call = NULL) {
   i_base <- parameter_groups == 0
   n_base <- sum(i_base)
-  n_groups <- length(vcv$groups)
-  i_group <- lapply(seq_len(n_groups), function(i) parameter_groups == i)
-  if (n_base != NROW(vcv$base)) {
-    cli::cli_abort("Invalid vcv$base")
+  n_groups <- max(parameter_groups)
+  i_group <- lapply(seq_len(n_groups), function(i) which(parameter_groups == i))
+  if (NROW(vcv$base) != n_base) {
+    cli::cli_abort(
+      c("Incompatible number of base parameters in your model and sampler",
+        i = paste("Your model has {n_base} base parameters, but 'vcv$base'",
+                  "implies {NROW(vcv$base)} parameters")),
+      call = call)
   }
-  if (max(parameter_groups) != n_groups) {
-    cli::cli_abort("Incorrect number of groups in vcv$groups")
+  if (length(vcv$groups) != n_groups) {
+    cli::cli_abort(
+      c("Incompatible number of parameter groups in your model and sampler",
+        i = paste("Your model has {n_groups} parameter groups, but",
+                  "'vcv$groups' has {length(vcv$groups)} groups")),
+      call = call)
+
+    cli::cli_abort("Incorrect number of groups in vcv$groups") # untested
   }
-  n_pars <- NROW(vcv$base) + sum(vnapply(vcv$groups, nrow))
-  if (n_pars != length(parameter_groups)) {
-    ## This will take some explanation...
-    cli::cli_abort("Invalid number of total parameters")
+  n_pars_by_group <- lengths(i_group)
+  n_pars_by_group_vcv <- vnapply(vcv$groups, nrow)
+  err <- n_pars_by_group_vcv != n_pars_by_group
+  if (any(err)) {
+    detail <- sprintf(
+      "Group %d has %d parameters but 'vcv$groups[[%d]]' has %d",
+      which(err), n_pars_by_group[err],
+      which(err), n_pars_by_group_vcv[err])
+    cli::cli_abort(
+      c("Incompatible number of parameters within parameter group",
+        set_names(detail, "i")),
+      call = call)
   }
 
   has_base <- n_base > 0
