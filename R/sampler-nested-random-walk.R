@@ -1,7 +1,41 @@
 ##' Create a nested random walk sampler, which uses a symmetric
 ##' proposal for separable sections of a model to move around in
 ##' parameter space.  This sampler supports sampling from models where
-##' the likelihood is only computable randomly (e.g., for pmcmc).
+##' the likelihood is only computable randomly (e.g., for pmcmc), and
+##' requires that models support the `has_parameter_groups` property.
+##'
+##' The intended use case for this sampler is for models where the
+##' density can be decomposed at least partially into chunks that are
+##' independent from each other.  Our motivating example for this is a
+##' model of COVID-19 transmission where some parameters
+##' region-specific (e.g., patterns and rates of contact between
+##' individuals), and some parameters are shared across all regions
+##' (e.g., intrinsic properties of the disease such as incubation
+##' period).
+##'
+##' The strategy is to propose all the shared parameters as a
+##' deviation from the current point in parameter space as a single
+##' move and accept or reject as a block. Then we generate points for
+##' all the region-specific parameters, compute the density and then
+##' accept or reject these updates independently.  This is possible
+##' because the change in likelihood in region A is independent from
+##' region B.
+##'
+##' We expect that this approach will be beneficial in limited
+##' situations, but where it is beneficial it is likely to result in
+##' fairly large speedups:
+##'
+##' * You probably need more than three regions; as the number of
+##'   regions increases the benefit independently accepting or
+##'   rejecting densities increases (with 1000 separate regions your
+##'   chains will mix very slowly for example).
+##' * Your model is fairly comutationally heavy so that the density
+##'   calculation completely dominates the sampling process.
+##' * You do not have access to gradient information for your model;
+##'   we suspect that HMC will outperform this approach by some margin
+##'   because it already includes this independence via the gradients.
+##' * You can compute your independent calculations in parallel, which
+##'   help this method reduce your wall time.
 ##'
 ##' @title Nested Random Walk Sampler
 ##'

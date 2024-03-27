@@ -7,7 +7,8 @@
 mcstate_model_properties(
   has_gradient = NULL,
   has_direct_sample = NULL,
-  is_stochastic = NULL
+  is_stochastic = NULL,
+  has_parameter_groups = NULL
 )
 }
 \arguments{
@@ -22,6 +23,14 @@ from the model.}
 \item{is_stochastic}{Logical, indicating if the model is
 stochastic.  Stochastic models must supply \code{set_rng_state} and
 \code{get_rng_state} methods.}
+
+\item{has_parameter_groups}{Logical, indicating that the model can
+be decomposed into parameter groups which are independent of
+each other.  This is indicated by using the \code{parameter_groups}
+field within the \code{model} object passed to \link{mcstate_model}, and
+by the presence of a \code{by_group} argument to \code{density} and (later
+we may also support this in \code{gradient}).  Use \code{NULL} (the
+default) to detect this from the model.}
 }
 \value{
 A list of class \code{mcstate_model_properties} which should
@@ -30,6 +39,6 @@ not be modified.
 \description{
 Describe properties of a model.  Use of this function is optional,
 but you can pass the return value of this as the \code{properties}
-argument of mcstate_model to enforce that your model does actually have these
-properties.
+argument of mcstate_model to enforce that your model does actually
+have these properties.
 }

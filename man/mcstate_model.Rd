@@ -18,6 +18,7 @@ An object of class \code{mcstate_model}.  This will have elements:
 \itemize{
 \item \code{model}: The model as provided
 \item \code{parameters}: The parameter name vector
+\item \code{parameter_groups}: The parameter groups
 \item \code{domain}: The parameter domain matrix, named with your parameters
 \item \code{direct_sample}: The \code{direct_sample} function, if provided by the model
 \item \code{gradient}: The \code{gradient} function, if provided by the model
@@ -27,6 +28,7 @@ see \code{\link[=mcstate_model_properties]{mcstate_model_properties()}}.  Curren
 \item \code{has_gradient}: the model can compute its gradient
 \item \code{has_direct_sample}: the model can sample from parameters space
 \item \code{is_stochastic}: the model will behave stochastically
+\item \code{has_parameter_groups}: The model has separable parameter groups
 }
 }
 }
@@ -93,5 +95,12 @@ particular chain, jumped ahead.
 \item \code{get_rng_state}: A function to get the RNG state; must be
 provided if \code{set_rng_state} is present.  Must return the random
 number state, which is a raw vector (potentially quite long).
+\item \code{parameter_groups}: Optionally, an integer vector indicating
+parameter group membership.  The format here may change
+(especially if we explore more complex nestings) but at present
+parameters with group 0 affect everything (so are accepted or
+rejected as a whole), while parameters in groups 1 to \code{n} are
+indepenent (for example, changing the parameters in group 2 does
+not affect the density of parameters proposed in group 3).
 }
 }
