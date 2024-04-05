@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 In chapter 4 of Statistical Rethinking, we build a regression model of height with parameters $\alpha$, $\beta$ and $\sigma$.  We can define the model for the prior probability of this model in mcstate by running
 
 ```{r}
-prior <- mcstate_ppl({
+prior <- mcstate_dsl({
   alpha ~ Normal(178, 20)
   beta ~ Normal(0, 10)
   sigma ~ Uniform(0, 50)
