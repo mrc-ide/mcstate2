@@ -79,6 +79,7 @@ runs a single chain as a proof of concept.</p>
 <span>  initial <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_chains <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  runner <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  observer <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  restartable <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -119,6 +120,13 @@ run chains in series (via <a href="mcstate_runner_serial.html">mcstate_runner_se
 other current option is <a href="mcstate_runner_parallel.html">mcstate_runner_parallel</a> which uses the
 <code>parallel</code> package to run chains in parallel.  If you only run
 one chain then this argument is best left alone.</p></dd>
+
+
+<dt>observer</dt>
+<dd><p>An observer, created via <a href="mcstate_observer.html">mcstate_observer</a>, which
+you can use to extract additional information from your model at
+points included in the chain (for example, trajectories from a
+dynamical model).</p></dd>
 
 
 <dt>restartable</dt>
