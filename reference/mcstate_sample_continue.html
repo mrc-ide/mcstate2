@@ -69,7 +69,7 @@ number of steps in a single push.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sample_continue</span><span class="op">(</span><span class="va">samples</span>, <span class="va">n_steps</span>, restartable <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sample_continue</span><span class="op">(</span><span class="va">samples</span>, <span class="va">n_steps</span>, restartable <span class="op">=</span> <span class="cn">FALSE</span>, runner <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -87,6 +87,20 @@ number of steps in a single push.</p>
 <dd><p>Logical, indicating if the chains should be
 restartable.  This will add additional data to the chains
 object.</p></dd>
+
+
+<dt>runner</dt>
+<dd><p>Optionally, a runner for your chains.  The default
+is to continue with the backend that you used to start the
+chains via <a href="mcstate_sample.html">mcstate_sample</a> (or on the previous restart with
+this function).  You can use this argument to change the runner,
+which might be useful if transferring a pilot run from a
+high-resource environment to a lower-resource environment.  If
+given, must be an <code>mcstate_runner</code> object such as
+<a href="mcstate_runner_serial.html">mcstate_runner_serial</a> or <a href="mcstate_runner_parallel.html">mcstate_runner_parallel</a>.  You can
+use this argument to change the configuration of a runner, as
+well as the type of runner (e.g., changing the number of
+allocated cores).</p></dd>
 
 </dl></div>
     <div class="section level2">
