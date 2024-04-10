@@ -93,6 +93,7 @@ used to enforce or clarify properties of the model.</p></dd>
 
 <p>An object of class <code>mcstate_model</code>.  This will have elements:</p><ul><li><p><code>model</code>: The model as provided</p></li>
 <li><p><code>parameters</code>: The parameter name vector</p></li>
+<li><p><code>parameter_groups</code>: The parameter groups</p></li>
 <li><p><code>domain</code>: The parameter domain matrix, named with your parameters</p></li>
 <li><p><code>direct_sample</code>: The <code>direct_sample</code> function, if provided by the model</p></li>
 <li><p><code>gradient</code>: The <code>gradient</code> function, if provided by the model</p></li>
@@ -100,6 +101,7 @@ used to enforce or clarify properties of the model.</p></dd>
 see <code><a href="mcstate_model_properties.html">mcstate_model_properties()</a></code>.  Currently this contains:</p><ul><li><p><code>has_gradient</code>: the model can compute its gradient</p></li>
 <li><p><code>has_direct_sample</code>: the model can sample from parameters space</p></li>
 <li><p><code>is_stochastic</code>: the model will behave stochastically</p></li>
+<li><p><code>has_parameter_groups</code>: The model has separable parameter groups</p></li>
 </ul></li>
 </ul></div>
     <div class="section level2">
@@ -156,6 +158,13 @@ particular chain, jumped ahead.</p></li>
 <li><p><code>get_rng_state</code>: A function to get the RNG state; must be
 provided if <code>set_rng_state</code> is present.  Must return the random
 number state, which is a raw vector (potentially quite long).</p></li>
+<li><p><code>parameter_groups</code>: Optionally, an integer vector indicating
+parameter group membership.  The format here may change
+(especially if we explore more complex nestings) but at present
+parameters with group 0 affect everything (so are accepted or
+rejected as a whole), while parameters in groups 1 to <code>n</code> are
+indepenent (for example, changing the parameters in group 2 does
+not affect the density of parameters proposed in group 3).</p></li>
 </ul></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
