@@ -63,9 +63,21 @@ It has nothing that can be configured (yet).</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_runner_serial</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_runner_serial</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
+    <dl><dt>progress</dt>
+<dd><p>Optional logical, indicating if we should print a
+progress bar while running.  If <code>NULL</code>, we use the value of the
+option <code>mcstate2.progress</code> if set, otherwise we show the
+progress bar (as it is typically wanted).  The progress bar
+itself responds to cli's options; in particular
+<code>cli.progress_show_after</code> and <code>cli.progress_clear</code> will affect
+your experience.</p></dd>
+
+</dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
