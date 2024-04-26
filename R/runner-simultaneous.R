@@ -27,6 +27,12 @@ mcstate_runner_simultaneous <- function(progress = NULL) {
                     "set to FALSE")),
         call = NULL)
     }
+    ## These will both be relaxed later.
+    if (model$properties$is_stochastic) {
+      cli::cli_abort(
+        "Can't yet use multiple parameter sets with stochastic model",
+        call = NULL)
+    }
     if (!is.null(observer)) {
       cli::cli_abort(
         "Can't yet use observers with 'mcstate_runner_simultaneous'",
@@ -108,10 +114,8 @@ mcstate_continue_chains_simultaneous <- function(state, model, sampler,
   sampler_state <- lapply(state, function(x) x$sampler)
   sampler$set_internal_state(sampler_state)
 
-  if (model$properties$is_stochastic) {
-    stop("need to work with stochastic models still...")
-    model$rng_state$set(state$model_rng)
-  }
+  stopifnot(!model$properties$is_stochastic)
+  ## Need to use model$rng_state$set to put state$model_rng into the model
 
   mcstate_run_chains_simultaneous2(chain_state, model, sampler, observer,
                                    n_steps, progress, rng, r_rng_state)

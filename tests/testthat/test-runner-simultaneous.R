@@ -9,6 +9,22 @@ test_that("require multiple parameter support for simultaneous runner", {
 })
 
 
+test_that("require multiple parameter support for simultaneous runner", {
+  m <- mcstate_model(list(density = function(x) dnorm(x, log = TRUE),
+                          set_rng_state = identity,
+                          get_rng_state = identity,
+                          parameters = "a"),
+                     mcstate_model_properties(is_stochastic = TRUE,
+                                              allow_multiple_parameters = TRUE))
+  sampler <- mcstate_sampler_random_walk(vcv = diag(1) * 0.01)
+  runner <- mcstate_runner_simultaneous()
+  expect_error(
+    mcstate_sample(m, sampler, 100, initial = 1, runner = runner),
+    "Can't yet use multiple parameter sets with stochastic model",
+    fixed = TRUE)
+})
+
+
 test_that("can't provide observer yet with simultaneous runner", {
   m <- ex_simple_gamma1()
   observer <- mcstate_observer(function(model, rng) 1)

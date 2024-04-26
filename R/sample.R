@@ -341,9 +341,8 @@ restart_data <- function(res, model, sampler, observer, runner) {
     if (!is.null(res$internal$state$sampler)) {
       stop("need to spread out sampler state")
     }
-    if (!is.null(res$internal$state$model_rng)) {
-      stop("need to spread out model state")
-    }
+    ## Prevented elsewhere, requires the filter to be rewritten a bit.
+    stopifnot(is.null(res$internal$state$model_rng))
     n_chains <- length(res$internal$state$chain$density)
     state <- lapply(seq_len(n_chains), function(i) {
       list(chain = list(
