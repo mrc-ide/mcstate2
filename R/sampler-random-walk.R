@@ -23,9 +23,9 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
     } else {
       n_sets <- 1L
     }
-    if (n_sets > 1 && !model$properties$allow_multiple_parameters) {
-      cli::cli_abort(
-        "Using multiple parameter sets with model that does not support it")
+    if (n_sets > 1) {
+      ## this is enforced elsewhere
+      stopifnot(model$properties$allow_multiple_parameters)
     }
 
     n_pars_vcv <- nrow(vcv)
@@ -36,14 +36,18 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
 
     if (length(dim(vcv)) == 3) {
       n_sets_vcv <- dim(vcv)[[3]]
-      if (n_sets == 1) {
+      if (n_sets == 1 && n_sets_vcv == 1) {
         dim(vcv) <- dim(vcv)[1:2]
       } else if (n_sets_vcv == 1) {
         vcv <- array(vcv, c(dim(vcv)[1:2], n_sets))
       } else if (n_sets_vcv != n_sets) {
         cli::cli_abort(
-          paste("Incompatible number of parameter sets ({n_sets}) and slices",
-                "in vcv ({n_sets_vcv})"))
+          c(paste("Incompatible number of parameter sets ({n_sets}) and slices",
+                  "in vcv ({n_sets_vcv})"),
+            i = paste("You configured the sampler to expect {n_sets_vcv}",
+                      "parameter set{?s}, but {n_sets} parameter set{?s}",
+                      "were provided when the sampler was initialised")),
+          call = NULL)
       }
     } else if (n_sets > 1) {
       vcv <- array(vcv, c(dim(vcv)[1:2], n_sets))

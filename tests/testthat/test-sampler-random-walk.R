@@ -134,3 +134,19 @@ test_that("can continue a simultaneous random walk sampler", {
 
   expect_equal(res2b, res1b)
 })
+
+
+test_that("validate number of parameter sets", {
+  m <- ex_simple_gamma1()
+  vcv <- array(1 * 10^c(-4, -3, -2, -1, 0), c(1, 1, 5))
+  sampler <- mcstate_sampler_random_walk(vcv = vcv)
+  expect_error(
+    mcstate_sample(m, sampler, 200, n_chains = 5),
+    "Incompatible number of parameter sets (1) and slices in vcv (5)",
+    fixed = TRUE)
+  runner <- mcstate_runner_simultaneous()
+  expect_error(
+    mcstate_sample(m, sampler, 200, n_chains = 3, runner = runner),
+    "Incompatible number of parameter sets (3) and slices in vcv (5)",
+    fixed = TRUE)
+})

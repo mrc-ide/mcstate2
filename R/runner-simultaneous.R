@@ -16,11 +16,21 @@
 ##' @export
 mcstate_runner_simultaneous <- function(progress = NULL) {
   validate_suitable <- function(model, observer) {
-    if (!is.null(observer)) {
-      stop("not supported") # TODO
-    }
     if (!model$properties$allow_multiple_parameters) {
-      stop("need allow_multiple_parameters set")
+      cli::cli_abort(
+        c("Using multiple parameter sets with model that does not support it",
+          i = paste("The 'simultaneous' runner requires that we can",
+                    "provide multiple parameters at once to your model",
+                    "and get back a vector of densities, but your model",
+                    "does not support this (or does not advertise that it",
+                    "does), with the property 'allow_multiple_parameters'",
+                    "set to FALSE")),
+        call = NULL)
+    }
+    if (!is.null(observer)) {
+      cli::cli_abort(
+        "Can't yet use observers with 'mcstate_runner_simultaneous'",
+        call = NULL)
     }
   }
 
