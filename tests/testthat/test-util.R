@@ -7,16 +7,43 @@ test_that("null-or-value works", {
 
 
 test_that("reject inappropriate vcv matrices", {
-  expect_error(check_vcv(1, "m"),
-               "Expected 'm' to be a matrix")
-  expect_error(check_vcv(matrix(runif(6), 2, 3), "m"),
+  expect_error(check_vcv(1, name = "m"),
+               "Expected a matrix for 'm'")
+  expect_error(check_vcv(matrix(runif(6), 2, 3), name = "m"),
                "Expected 'm' to be symmetric")
-  expect_error(check_vcv(matrix(runif(16), 4, 4), "m"),
+  expect_error(check_vcv(matrix(runif(16), 4, 4), name = "m"),
                "Expected 'm' to be symmetric")
   m <- var(mtcars[1:3])
   expect_no_error(check_vcv(m))
   diag(m) <- 0
   expect_error(check_vcv(m), "Expected 'm' to be positive definite")
+})
+
+
+test_that("reject inappropriate vcv arrays", {
+  vcv <- array(0, c(2, 2, 5))
+  vcv[1, 1, ] <- 1:5
+  vcv[2, 2, ] <- 1
+  expect_no_error(check_vcv(vcv, allow_3d = TRUE, name = "m"))
+  expect_error(
+    check_vcv(vcv, allow_3d = FALSE, name = "m"),
+    "Expected a matrix for 'm'")
+  expect_error(
+    check_vcv(array(vcv, c(2, 2, 5, 1)), allow_3d = TRUE, name = "m"),
+    "Expected a matrix or 3d array for 'm'")
+  expect_error(
+    check_vcv(vcv[, , 0], allow_3d = TRUE, name = "m"),
+    "At least one vcv required within a vcv array")
+  vcv[1, 2, 2] <- 10
+  expect_error(
+    check_vcv(vcv, allow_3d = TRUE, name = "m"),
+    "Expected 'm[, , 2]' to be symmetric",
+    fixed = TRUE)
+  vcv[2, 1, 2] <- 10
+  expect_error(
+    check_vcv(vcv, allow_3d = TRUE, name = "m"),
+    "Expected 'm[, , 2]' to be positive definite",
+    fixed = TRUE)
 })
 
 
