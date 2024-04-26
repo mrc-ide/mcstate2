@@ -28,8 +28,9 @@ reference:
 
   - subtitle: Chain runners
     contents:
-    - mcstate_runner_parallel
     - mcstate_runner_serial
+    - mcstate_runner_parallel
+    - mcstate_runner_simultaneous
 
   - subtitle: Tools
     contents:

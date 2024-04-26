@@ -263,25 +263,36 @@ initial_parameters <- function(initial, model, rng, call = NULL) {
 
 
 combine_chains <- function(res, observer = NULL) {
-  pars <- array_bind(arrays = lapply(res, "[[", "pars"), after = 2)
-  density <- array_bind(arrays = lapply(res, "[[", "density"), after = 1)
-  details <- lapply(res, "[[", "details")
-  details <- if (all(vlapply(details, is.null))) NULL else details
+  if (is.null(names(res))) {
+    pars <- array_bind(arrays = lapply(res, "[[", "pars"), after = 2)
+    density <- array_bind(arrays = lapply(res, "[[", "density"), after = 1)
+    details <- lapply(res, "[[", "details")
+    details <- if (all(vlapply(details, is.null))) NULL else details
 
-  n_pars <- nrow(pars)
-  initial <- vapply(res, "[[", numeric(n_pars), "initial")
-  if (n_pars == 1) {
-    initial <- rbind(initial, deparse.level = 0)
+    n_pars <- nrow(pars)
+    initial <- vapply(res, "[[", numeric(n_pars), "initial")
+    if (n_pars == 1) {
+      initial <- rbind(initial, deparse.level = 0)
+    }
+
+    if (is.null(observer)) {
+      observations <- NULL
+    } else {
+      observations <- observer$combine(lapply(res, "[[", "observations"))
+    }
+    used_r_rng <- vlapply(res, function(x) x$internal$used_r_rng)
+  } else {
+    stopifnot(is.null(observer)) # prevented earlier
+    pars <- res$pars
+    density <- res$density
+    details <- res$details
+    observations <- res$observations
+    used_r_rng <- res$internal$used_r_rng
+    initial <- res$initial
   }
+
   rownames(initial) <- rownames(pars)
 
-  if (is.null(observer)) {
-    observations <- NULL
-  } else {
-    observations <- observer$combine(lapply(res, "[[", "observations"))
-  }
-
-  used_r_rng <- vlapply(res, function(x) x$internal$used_r_rng)
   if (any(used_r_rng)) {
     cli::cli_warn(c(
       "Detected use of R's random number generators",
@@ -324,7 +335,27 @@ initial_rng <- function(n_chains, seed = NULL) {
 
 
 restart_data <- function(res, model, sampler, observer, runner) {
-  list(state = lapply(res, function(x) x$internal$state),
+  if (is.null(names(res))) {
+    state <- lapply(res, function(x) x$internal$state)
+  } else {
+    if (!is.null(res$internal$state$sampler)) {
+      stop("need to spread out sampler state")
+    }
+    if (!is.null(res$internal$state$model_rng)) {
+      stop("need to spread out model state")
+    }
+    n_chains <- length(res$internal$state$chain$density)
+    state <- lapply(seq_len(n_chains), function(i) {
+      list(chain = list(
+             pars = res$internal$state$chain$pars[, i],
+             density = res$internal$state$chain$density[i],
+             observation = NULL),
+           rng = res$internal$state$rng[[i]],
+           sampler = NULL,
+           model_rng = NULL)
+    })
+  }
+  list(state = state,
        model = model,
        sampler = sampler,
        observer = observer,

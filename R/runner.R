@@ -19,7 +19,7 @@
 mcstate_runner_serial <- function(progress = NULL) {
   run <- function(pars, model, sampler, observer, n_steps, rng) {
     n_chains <- length(rng)
-    pb <- progress_bar(n_chains, n_steps, progress, environment())
+    pb <- progress_bar(n_chains, n_steps, progress, TRUE, environment())
     lapply(
       seq_along(rng),
       function(i) {
@@ -30,7 +30,7 @@ mcstate_runner_serial <- function(progress = NULL) {
 
   continue <- function(state, model, sampler, observer, n_steps) {
     n_chains <- length(state)
-    pb <- progress_bar(n_chains, n_steps, progress, environment())
+    pb <- progress_bar(n_chains, n_steps, progress, TRUE, environment())
     lapply(
       seq_along(state),
       function(i) {
@@ -107,6 +107,9 @@ mcstate_runner_parallel <- function(n_workers) {
                  observer = observer,
                  n_steps = n_steps)
 
+    ## To debug issues in the parallel sampler, it's most efficient to
+    ## replace this call with `Map` and drop the `cl` argument, then
+    ## you get nice stack traces.
     parallel::clusterMap(
       cl,
       mcstate_run_chain_parallel,
@@ -185,7 +188,6 @@ mcstate_continue_chain <- function(state, model, sampler, observer, n_steps,
   mcstate_run_chain2(state$chain, model, sampler, observer, n_steps, progress,
                      rng, r_rng_state)
 }
-
 
 
 mcstate_run_chain2 <- function(chain_state, model, sampler, observer, n_steps,

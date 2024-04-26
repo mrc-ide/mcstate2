@@ -25,7 +25,7 @@ test_that("validate vcv inputs on construction of sampler", {
     "Expected 'vcv' to have elements 'base' and 'groups'")
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = TRUE, groups = TRUE)),
-    "Expected 'vcv$base' to be a matrix",
+    "Expected a matrix for 'vcv$base'",
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = TRUE)),
@@ -37,7 +37,7 @@ test_that("validate vcv inputs on construction of sampler", {
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = list(TRUE))),
-    "Expected 'vcv$groups[1]' to be a matrix",
+    "Expected a matrix for 'vcv$groups[1]'",
     fixed = TRUE)
 
   vcv <- list(base = diag(1), groups = list(diag(2), diag(3)))

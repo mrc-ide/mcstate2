@@ -20,6 +20,15 @@ update_state <- function(state, pars, density, model, observer, rng) {
 }
 
 
+update_state_multiple <- function(state, accept, pars, density, model,
+                                  observer, rng) {
+  stopifnot(is.null(observer)) # Enforced earlier
+  state$pars[, accept] <- pars[, accept]
+  state$density[accept] <- density[accept]
+  state
+}
+
+
 initialise_rng_state <- function(model, rng) {
   if (isTRUE(model$properties$is_stochastic)) {
     model$rng_state$set(mcstate_rng$new(rng$state())$jump()$state())

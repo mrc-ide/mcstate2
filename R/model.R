@@ -25,6 +25,17 @@
 ##'   we may also support this in `gradient`).  Use `NULL` (the
 ##'   default) to detect this from the model.
 ##'
+##' @param allow_multiple_parameters Logical, indicating if the
+##'   density calculation can support being passed a matrix of
+##'   parameters (with each column corresponding to a different
+##'   parameter set) and return a vector of densities.  If `FALSE`, we
+##'   will support some different approaches to sort this out for you
+##'   if this feature is needed.  This cannot be detected from the
+##'   model, and the default is `FALSE` because it's not always
+##'   straightforward to implement.  However, where it is possible it
+##'   may be much more efficient (via vectorisation or
+##'   parallelisation) to do this yourself.
+##'
 ##' @return A list of class `mcstate_model_properties` which should
 ##'   not be modified.
 ##'
@@ -32,11 +43,16 @@
 mcstate_model_properties <- function(has_gradient = NULL,
                                      has_direct_sample = NULL,
                                      is_stochastic = NULL,
-                                     has_parameter_groups = NULL) {
+                                     has_parameter_groups = NULL,
+                                     allow_multiple_parameters = FALSE) {
+  ## TODO: What name do we want for this property, really?
+  assert_scalar_logical(allow_multiple_parameters)
   ret <- list(has_gradient = has_gradient,
               has_direct_sample = has_direct_sample,
               is_stochastic = is_stochastic,
-              has_parameter_groups = has_parameter_groups)
+              has_parameter_groups = has_parameter_groups,
+              ## TODO: I am not convinced on this name
+              allow_multiple_parameters = allow_multiple_parameters)
   class(ret) <- "mcstate_model_properties"
   ret
 }
@@ -57,7 +73,9 @@ mcstate_model_properties <- function(has_gradient = NULL,
 ##'   the posterior probability density in Bayesian inference, but it
 ##'   could be anything really.  Models can return `-Inf` if things
 ##'   are impossible, and we'll try and cope gracefully with that
-##'   wherever possible.
+##'   wherever possible.  If the property `allow_multiple_parameters`
+##'   is `TRUE`, then this function must be able to handle a matrix
+##'   argument parameters and return a vector valued density.
 ##'
 ##' * `parameters`: A character vector of parameter names.  This
 ##'   vector is the source of truth for the length of the parameter
