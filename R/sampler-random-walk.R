@@ -19,14 +19,10 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
     n_pars <- length(model$parameters)
     internal$multiple_parameters <- length(dim2(pars)) > 1
     if (internal$multiple_parameters) {
-      n_sets <- ncol(pars)
-    } else {
-      n_sets <- 1L
-    }
-    if (n_sets > 1) {
       ## this is enforced elsewhere
       stopifnot(model$properties$allow_multiple_parameters)
     }
+    n_sets <- if (internal$multiple_parameters) ncol(pars) else 1L
 
     n_pars_vcv <- nrow(vcv)
     if (n_pars != n_pars_vcv) {
@@ -61,16 +57,8 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
     pars_next <- internal$proposal(state$pars, rng)
     density_next <- model$density(pars_next)
     accept <- density_next - state$density > log(rng$random_real(1))
-
-    if (any(accept)) {
-      if (internal$multiple_parameters) {
-        state <- update_state_multiple(state, accept, pars_next, density_next,
-                                       model, observer, rng)
-      } else {
-        state <- update_state(state, pars_next, density_next,
-                              model, observer, rng)
-      }
-    }
+    state <- update_state(state, pars_next, density_next, accept,
+                          model, observer, rng)
     state
   }
 

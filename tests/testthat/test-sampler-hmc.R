@@ -169,3 +169,15 @@ test_that("can't use hmc with stochastic models", {
     mcstate_sample(m, sampler, 30, n_chains = 3),
     "Can't use HMC with stochastic models")
 })
+
+
+test_that("can run hmc model simultaneously", {
+  m <- ex_banana()
+  sampler <- mcstate_sampler_hmc(epsilon = 0.1, n_integration_steps = 10)
+  runner <- mcstate_runner_simultaneous()
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 200, n_chains = 3)
+  set.seed(1)
+  res2 <- mcstate_sample(m, sampler, 200, n_chains = 3, runner = runner)
+  expect_equal(res1, res2)
+})

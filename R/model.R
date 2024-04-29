@@ -379,3 +379,18 @@ require_gradient <- function(model, message, ...) {
       ...)
   }
 }
+
+
+require_multiple_parameters <- function(model, message, ...) {
+  if (!model$properties$allow_multiple_parameters) {
+    cli::cli_abort(
+      c(message,
+        i = paste("This functionality requires that we can",
+                  "provide multiple parameters at once to your model",
+                  "and get back a vector of densities, but your model",
+                  "does not support this (or does not advertise that it",
+                  "does), with the property 'allow_multiple_parameters'",
+                  "set to FALSE")),
+        ...)
+  }
+}
