@@ -113,6 +113,59 @@ test_that("can transform model parameters to R^n and back again", {
 })
 
 
+test_that("multiple transforms at once are possible", {
+  ## Same cases as above
+  t1 <- hmc_transform(cbind(rep(-Inf, 3), rep(Inf, 3)), FALSE)
+  t2 <- hmc_transform(cbind(rep(-Inf, 3), rep(Inf, 3)), TRUE)
+
+  ## Pars come in with rows representing parameters and columns
+  ## parameter sets.
+  x <- matrix(runif(12), 3, 4)
+  x1 <- x[, 1, drop = FALSE]
+
+  expect_identical(t2$model2rn(x1), cbind(t1$model2rn(drop(x1))))
+  expect_identical(t2$rn2model(x1), cbind(t1$rn2model(drop(x1))))
+  expect_identical(t2$deriv(x1), cbind(t1$deriv(drop(x1))))
+  expect_identical(t2$model2rn(x), apply(x, 2, t1$model2rn))
+  expect_identical(t2$rn2model(x), apply(x, 2, t1$rn2model))
+  expect_identical(t2$deriv(x), apply(x, 2, t1$deriv))
+
+  t1 <- hmc_transform(cbind(rep(0, 3), rep(Inf, 3)), FALSE)
+  t2 <- hmc_transform(cbind(rep(0, 3), rep(Inf, 3)), TRUE)
+  x <- matrix(c(0.5, 1.5, 2.5), 3, 4) + runif(12) - 0.5
+  x1 <- x[, 1, drop = FALSE]
+
+  expect_identical(t2$model2rn(x1), cbind(t1$model2rn(drop(x1))))
+  expect_identical(t2$rn2model(x1), cbind(t1$rn2model(drop(x1))))
+  expect_identical(t2$deriv(x1), cbind(t1$deriv(drop(x1))))
+  expect_identical(t2$model2rn(x), apply(x, 2, t1$model2rn))
+  expect_identical(t2$rn2model(x), apply(x, 2, t1$rn2model))
+  expect_identical(t2$deriv(x), apply(x, 2, t1$deriv))
+
+  lower <- c(0, 1, 2)
+  upper <- c(1, 3, 6)
+  t1 <- hmc_transform(cbind(lower, upper), FALSE)
+  t2 <- hmc_transform(cbind(lower, upper), TRUE)
+  x <- matrix(c(0.5, 1.5, 2.5), 3, 4) + runif(12) - 0.5
+  x1 <- x[, 1, drop = FALSE]
+
+  expect_identical(t2$model2rn(x1), cbind(t1$model2rn(drop(x1))))
+  expect_identical(t2$rn2model(x1), cbind(t1$rn2model(drop(x1))))
+  expect_identical(t2$deriv(x1), cbind(t1$deriv(drop(x1))))
+  expect_identical(t2$model2rn(x), apply(x, 2, t1$model2rn))
+  expect_identical(t2$rn2model(x), apply(x, 2, t1$rn2model))
+  expect_identical(t2$deriv(x), apply(x, 2, t1$deriv))
+
+  ## A mixed case:
+  t1 <- hmc_transform(cbind(c(-Inf, 0, 0), c(Inf, Inf, 1)), FALSE)
+  t2 <- hmc_transform(cbind(c(-Inf, 0, 0), c(Inf, Inf, 1)), TRUE)
+  x <- matrix(c(0.5, 0.6, 0.7), 3, 4) + runif(12) * 0.1 - 0.05
+  expect_identical(t2$model2rn(x), apply(x, 2, t1$model2rn))
+  expect_identical(t2$rn2model(x), apply(x, 2, t1$rn2model))
+  expect_identical(t2$deriv(x), apply(x, 2, t1$deriv))
+})
+
+
 test_that("prevent weird distributions", {
   expect_error(
     hmc_transform(cbind(rep(0, 3), c(1, Inf, -Inf))),

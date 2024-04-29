@@ -205,10 +205,6 @@ hmc_transform <- function(domain, multiple_parameters) {
   b <- upper[is_bounded]
 
   if (multiple_parameters) {
-    if (any(is_bounded)) {
-      ## Probably just a case of repeating a and b?
-      stop("This needs checking, the recycling is likely incorrect")
-    }
     rn2model <- function(theta) {
       theta[is_semi_infinite, ] <-
         lower[is_semi_infinite] + exp(theta[is_semi_infinite, ])
