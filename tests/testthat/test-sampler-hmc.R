@@ -197,3 +197,27 @@ test_that("can run hmc model simultaneously, with debug", {
   res2 <- mcstate_sample(m, sampler, 30, n_chains = 3, runner = runner)
   expect_equal(res1, res2)
 })
+
+
+test_that("can continue a hmc model simultaneously, with debug", {
+  m <- ex_banana()
+  sampler <- mcstate_sampler_hmc(epsilon = 0.1, n_integration_steps = 10,
+                                 debug = TRUE)
+  runner <- mcstate_runner_simultaneous()
+  set.seed(1)
+  res1a <- mcstate_sample(m, sampler, 30, n_chains = 3, restartable = TRUE)
+  res1b <- mcstate_sample_continue(res1a, 70)
+  ## We don't yet do a good job of auto squashing the details.  I'll
+  ## make this change in a future PR so it's more obvious (mrc-5293)
+  res1b$details <- observer_finalise_auto(res1b$details)
+
+  set.seed(1)
+  res2a <- mcstate_sample(m, sampler, 30, n_chains = 3, restartable = TRUE,
+                          runner = runner)
+  res2b <- mcstate_sample_continue(res2a, 70)
+
+  expect_equal(res1a$restart$state, res2a$restart$state)
+  expect_equal(res1b, res2b)
+  expect_equal(dim(res2b$details$pars), c(2, 11, 100, 3))
+  expect_equal(dim(res2b$details$accept), c(100, 3))
+})

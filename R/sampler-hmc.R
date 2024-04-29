@@ -148,11 +148,34 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
   }
 
   get_internal_state <- function() {
-    list(history = internal$history)
+    if (!debug) {
+      return(NULL)
+    }
+    history <- internal$history
+    if (internal$multiple_parameters) {
+      ## Split this by chain:
+      lapply(seq_len(internal$n_sets), function(i) {
+        lapply(history, function(x) {
+          list(pars = x$pars[, i, , drop = FALSE], accept = x$accept[[i]])
+        })
+      })
+    } else {
+      history
+    }
   }
 
   set_internal_state <- function(state) {
-    internal$history <- state$history
+    if (internal$multiple_parameters && !is.null(state)) {
+      ## Fairly ugly transpose here; there will be other ways of doing
+      ## this to explore later.
+      internal$history <- lapply(seq_len(length(state[[1]])), function(j) {
+        list(pars = array_bind(arrays = lapply(state, function(x) x[[j]]$pars),
+                               on = 2),
+             accept = vlapply(state, function(x) x[[j]]$accept))
+      })
+    } else {
+      internal$history <- state
+    }
   }
 
   mcstate_sampler("Hamiltonian Monte Carlo",
