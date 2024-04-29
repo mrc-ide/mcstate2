@@ -43,10 +43,7 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
       if (internal$multiple_parameters) {
         browser()
       }
-      if (n_pars != nrow(vcv)) {
-        cli::cli_abort(
-          "Incompatible length parameters ({n_pars}) and vcv ({nrow(vcv)})")
-      }
+      vcv <- sampler_validate_vcv(vcv, pars)
       internal$sample_momentum <- make_rmvnorm(vcv, centred = TRUE)
     }
     if (debug) {

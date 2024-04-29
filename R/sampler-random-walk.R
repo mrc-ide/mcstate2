@@ -22,33 +22,8 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
       ## this is enforced elsewhere
       stopifnot(model$properties$allow_multiple_parameters)
     }
-    n_sets <- if (internal$multiple_parameters) ncol(pars) else 1L
 
-    n_pars_vcv <- nrow(vcv)
-    if (n_pars != n_pars_vcv) {
-      cli::cli_abort(
-        "Incompatible length parameters ({n_pars}) and vcv ({n_pars_vcv})")
-    }
-
-    if (length(dim(vcv)) == 3) {
-      n_sets_vcv <- dim(vcv)[[3]]
-      if (n_sets == 1 && n_sets_vcv == 1) {
-        dim(vcv) <- dim(vcv)[1:2]
-      } else if (n_sets_vcv == 1) {
-        vcv <- array(vcv, c(dim(vcv)[1:2], n_sets))
-      } else if (n_sets_vcv != n_sets) {
-        cli::cli_abort(
-          c(paste("Incompatible number of parameter sets ({n_sets}) and slices",
-                  "in vcv ({n_sets_vcv})"),
-            i = paste("You configured the sampler to expect {n_sets_vcv}",
-                      "parameter set{?s}, but {n_sets} parameter set{?s}",
-                      "were provided when the sampler was initialised")),
-          call = NULL)
-      }
-    } else if (n_sets > 1) {
-      vcv <- array(vcv, c(dim(vcv)[1:2], n_sets))
-    }
-
+    vcv <- sampler_validate_vcv(vcv, pars)
     internal$proposal <- make_rmvnorm(vcv)
     initialise_state(pars, model, observer, rng)
   }
