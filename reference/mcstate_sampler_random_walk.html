@@ -66,23 +66,13 @@ randomly (e.g., for pmcmc).</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sampler_random_walk</span><span class="op">(</span>proposal <span class="op">=</span> <span class="cn">NULL</span>, vcv <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_sampler_random_walk</span><span class="op">(</span>vcv <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>proposal</dt>
-<dd><p>A proposal function; must take a vector of
-parameters and a random number generator object
-(<code><a href="mcstate_rng.html">mcstate_rng</a></code>) and produce a new vector of proposed
-parameters.</p></dd>
-
-
-<dt>vcv</dt>
-<dd><p>A variance covariance matrix to generate a <code>proposal</code>
-function from.  If you want multivariate Gaussian proposal, this
-is likely simpler than supplying your own <code>proposal</code>, and
-generally more efficient too.</p></dd>
+    <dl><dt>vcv</dt>
+<dd><p>A variance covariance matrix for the proposal.</p></dd>
 
 </dl></div>
     <div class="section level2">
