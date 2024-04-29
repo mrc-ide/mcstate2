@@ -40,9 +40,6 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     if (is.null(vcv)) {
       internal$sample_momentum <- function(rng) rng$random_normal(n_pars)
     } else {
-      if (internal$multiple_parameters) {
-        browser()
-      }
       vcv <- sampler_validate_vcv(vcv, pars)
       internal$sample_momentum <- make_rmvnorm(vcv, centred = TRUE)
     }
