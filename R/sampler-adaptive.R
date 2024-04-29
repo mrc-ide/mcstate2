@@ -152,10 +152,8 @@ mcstate_sampler_adaptive <- function(initial_vcv,
     accept_prob <- min(1, exp(density_next - state$density))
 
     accept <- u < accept_prob
-    if (accept) {
-      state <- update_state(state, pars_next, density_next, model, observer,
-                            rng)
-    }
+    state <- update_state(state, pars_next, density_next, accept,
+                          model, observer, rng)
 
     internal$iteration <- internal$iteration + 1
     internal$history_pars <- rbind(internal$history_pars, state$pars)
