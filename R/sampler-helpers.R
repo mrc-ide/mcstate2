@@ -12,7 +12,7 @@ initialise_state <- function(pars, model, observer, rng) {
 
 update_state <- function(state, pars, density, accept, model, observer, rng) {
   if (any(accept)) {
-    if (is.matrix(pars)) {
+    if (is.matrix(state$pars)) {
       stopifnot(is.null(observer)) # Enforced earlier
       state$pars[, accept] <- pars[, accept]
       state$density[accept] <- density[accept]

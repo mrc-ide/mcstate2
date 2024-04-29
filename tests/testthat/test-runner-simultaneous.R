@@ -5,7 +5,7 @@ test_that("require multiple parameter support for simultaneous runner", {
   runner <- mcstate_runner_simultaneous()
   expect_error(
     mcstate_sample(m, sampler, 100, initial = 1, runner = runner),
-    "Using multiple parameter sets with model that does not support it")
+    "mcstate_runner_simultaneous requires support for multiple parameters")
 })
 
 

@@ -36,7 +36,7 @@ test_that("can output debug traces", {
 
   expect_null(res1$details)
   expect_length(res2$details, 1)
-  expect_equal(names(res2$details[[1]]), "debug")
+  expect_equal(names(res2$details[[1]]), c("pars", "accept"))
   expect_equal(res2$details[[1]]$accept, rep(TRUE, 30))
 
   pars <- array_drop(res2$pars, 3)
@@ -81,13 +81,13 @@ test_that("given vcv and parameters must be compatible", {
 
 
 test_that("can transform model parameters to R^n and back again", {
-  transform <- hmc_transform(cbind(rep(-Inf, 3), rep(Inf, 3)))
+  transform <- hmc_transform(cbind(rep(-Inf, 3), rep(Inf, 3)), FALSE)
   x <- c(0.1, 0.2, 0.3)
   expect_identical(transform$model2rn(x), x)
   expect_identical(transform$rn2model(x), x)
   expect_identical(transform$deriv(x), rep(1, 3))
 
-  transform <- hmc_transform(cbind(rep(0, 3), rep(Inf, 3)))
+  transform <- hmc_transform(cbind(rep(0, 3), rep(Inf, 3)), FALSE)
   x <- c(0.5, 1.5, 2.5)
   expect_identical(transform$model2rn(x), log(x))
   expect_identical(transform$rn2model(log(x)), x)
@@ -95,7 +95,7 @@ test_that("can transform model parameters to R^n and back again", {
 
   lower <- c(0, 1, 2)
   upper <- c(1, 3, 6)
-  transform <- hmc_transform(cbind(lower, upper))
+  transform <- hmc_transform(cbind(lower, upper), FALSE)
   x <- c(0.5, 1.5, 2.5)
   expect_identical(transform$model2rn(x), logit_bounded(x, lower, upper))
   theta <- transform$model2rn(x)
@@ -103,7 +103,7 @@ test_that("can transform model parameters to R^n and back again", {
   expect_equal(transform$deriv(x), dilogit_bounded(x, lower, upper))
 
   ## A mixed case:
-  transform <- hmc_transform(cbind(c(-Inf, 0, 0), c(Inf, Inf, 1)))
+  transform <- hmc_transform(cbind(c(-Inf, 0, 0), c(Inf, Inf, 1)), FALSE)
   x <- c(0.5, 0.6, 0.7)
   theta <- transform$model2rn(x)
   expect_equal(theta, c(0.5, log(0.6), logit_bounded(0.7, 0, 1)))
