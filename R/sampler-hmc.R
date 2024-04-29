@@ -67,7 +67,8 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     theta_next <- theta
 
     if (debug) {
-      n_sets <- if (is.matrix(state$pars)) ncol(state$pars) else 1
+      n_sets <- internal$n_sets
+      n_pars <- length(model$parameters)
       history <- array(NA_real_, c(n_pars, n_sets, n_integration_steps + 1))
       history[, , 1] <- pars_next
     }
@@ -115,6 +116,12 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     ## position
     u <- rng$random_real(1)
     accept <- u < exp(density_next - state$density + energy - energy_next)
+
+    if (debug) {
+      internal$history <-
+        c(internal$history, list(list(pars = history, accept = accept)))
+    }
+
     state <- update_state(state, pars_next, density_next, accept,
                           model, observer, rng)
 
@@ -123,16 +130,18 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
 
   finalise <- function(state, model, rng) {
     if (debug) {
+      pars <- array_bind(arrays = lapply(internal$history, "[[", "pars"),
+                         after = 3)
+      accept <- lapply(internal$history, function(x) x$accept)
       if (internal$multiple_parameters) {
-        browser()
+        pars <- aperm(pars, c(1, 3, 4, 2))
+        accept <- matrix(unlist(accept), ncol = internal$n_sets, byrow = TRUE)
+      } else {
+        dim(pars) <- dim(pars)[-2] # redundant sets dimension
+        accept <- vlapply(accept, identity)
       }
-      pars <- lapply(internal$history, "[[", "pars")
-      pars <- array_bind(
-        arrays = lapply(internal$history, "[[", "pars"),
-        after = 2)
       rownames(pars) <- model$parameters
-      accept <- vlapply(internal$history, "[[", "accept")
-      list(debug = list(pars = pars, accept = accept))
+      list(pars = pars, accept = accept)
     } else {
       NULL
     }

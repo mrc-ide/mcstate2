@@ -37,10 +37,10 @@ test_that("can output debug traces", {
   expect_null(res1$details)
   expect_length(res2$details, 1)
   expect_equal(names(res2$details[[1]]), "debug")
-  expect_equal(res2$details[[1]]$debug$accept, rep(TRUE, 30))
+  expect_equal(res2$details[[1]]$accept, rep(TRUE, 30))
 
   pars <- array_drop(res2$pars, 3)
-  debug_pars <- res2$details[[1]]$debug$pars
+  debug_pars <- res2$details[[1]]$pars
   expect_equal(dim(debug_pars), c(2, 11, 30))
   expect_equal(dimnames(debug_pars), list(c("a", "b"), NULL, NULL))
   expect_equal(debug_pars[, 1, ], cbind(res2$initial, pars[, -30]))
@@ -179,5 +179,21 @@ test_that("can run hmc model simultaneously", {
   res1 <- mcstate_sample(m, sampler, 200, n_chains = 3)
   set.seed(1)
   res2 <- mcstate_sample(m, sampler, 200, n_chains = 3, runner = runner)
+  expect_equal(res1, res2)
+})
+
+
+test_that("can run hmc model simultaneously, with debug", {
+  m <- ex_banana()
+  sampler <- mcstate_sampler_hmc(epsilon = 0.1, n_integration_steps = 10,
+                                 debug = TRUE)
+  runner <- mcstate_runner_simultaneous()
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 30, n_chains = 3)
+  ## We don't yet do a good job of auto squashing the details.  I'll
+  ## make this change in a future PR so it's more obvious (mrc-5293)
+  res1$details <- observer_finalise_auto(res1$details)
+  set.seed(1)
+  res2 <- mcstate_sample(m, sampler, 30, n_chains = 3, runner = runner)
   expect_equal(res1, res2)
 })
