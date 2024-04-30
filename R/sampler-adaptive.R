@@ -116,6 +116,10 @@ mcstate_sampler_adaptive <- function(initial_vcv,
   initialise <- function(pars, model, observer, rng) {
     require_deterministic(model,
                           "Can't use adaptive sampler with stochastic models")
+    if (is.matrix(pars)) {
+      cli::cli_abort(
+        "Can't use 'mcstate_sampler_adaptive' with simultaneous chains")
+    }
     internal$weight <- 0
     internal$iteration <- 0
 
