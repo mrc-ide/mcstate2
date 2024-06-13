@@ -86,10 +86,26 @@ test_that("validate domain", {
     mcstate_model(list(density = identity,
                        parameters = "a",
                        domain = rbind(A = c(0, 1)))),
-    "Unexpected rownames on domain",
+    "Unexpected parameters found in 'model$domain' rownames",
     fixed = TRUE)
 })
 
+
+test_that("fill in default domain entries where only some provided", {
+  base <- list(density = sum, parameters = letters[1:3])
+  default <- matrix(c(-Inf, Inf), 3, 2, byrow = TRUE,
+                    dimnames = list(letters[1:3], NULL))
+  expect_equal(
+    mcstate_model(modifyList(base, list(domain = NULL)))$domain,
+    default)
+  expect_equal(
+    mcstate_model(modifyList(base, list(domain = rbind(b = c(0, 1)))))$domain,
+    rbind(a = c(-Inf, Inf), b = c(0, 1), c = c(-Inf, Inf)))
+  change <- rbind(b = c(0, 1), a = c(-1, 2))
+  expect_equal(
+    mcstate_model(modifyList(base, list(domain = change)))$domain,
+    rbind(a = c(-1, 2), b = c(0, 1), c = c(-Inf, Inf)))
+})
 
 test_that("can use properties to guarantee that a property exists", {
   m <- list(density = function(x) dnorm(x, log = TRUE), parameters = "a")

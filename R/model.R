@@ -70,9 +70,14 @@ mcstate_model_properties <- function(has_gradient = NULL,
 ##'   `Inf`) should be used where the parameter has infinite domain up
 ##'   or down.  Currently used to translate from a bounded to
 ##'   unbounded space for HMC, but we might also use this for
-##'   reflecting proposals in MCMC too.  If not present we assume that
-##'   the model is valid everywhere (i.e., that all parameters are
-##'   valid from `-Inf` to `Inf`.
+##'   reflecting proposals in MCMC too, as well as a fast way of
+##'   avoiding calculating densities where proposals fall out of
+##'   bounds.  If not present we assume that the model is valid
+##'   everywhere (i.e., that all parameters are valid from `-Inf` to
+##'   `Inf`.  If unnamed, you must provide a domain for all
+##'   parameters.  If named, then you can provide a subset, with
+##'   parameters that are not included assumed to have a domain of
+##'   `(-Inf, Inf)`.
 ##'
 ##' * `direct_sample`: A function to sample directly from the
 ##'   parameter space, given an [mcstate_rng] object to sample from.
@@ -192,31 +197,58 @@ validate_model_parameters <- function(model, call = NULL) {
 
 
 validate_model_domain <- function(model, call = NULL) {
+  domain <- model$domain
   n_pars <- length(model$parameters)
-  if (is.null(model$domain)) {
+
+  if (is.null(domain)) {
     domain <- cbind(rep(-Inf, n_pars), rep(Inf, n_pars))
-  } else {
-    domain <- model$domain
-    if (!is.matrix(domain)) {
-      cli::cli_abort("Expected 'model$domain' to be a matrix if non-NULL")
-    }
-    if (nrow(domain) != n_pars) {
-      cli::cli_abort(paste(
-        "Expected 'model$domain' to have {n_pars} row{?s},",
-        "but it had {nrow(domain)}"))
-    }
-    if (ncol(domain) != 2) {
-      cli::cli_abort(paste(
-        "Expected 'model$domain' to have 2 columns,",
-        "but it had {ncol(domain)}"))
-    }
-    if (!is.null(rownames(domain))) {
-      if (!identical(rownames(domain), model$parameters)) {
-        cli::cli_abort("Unexpected rownames on domain")
-      }
-    }
+    rownames(domain) <- model$parameters
+    return(domain)
   }
-  rownames(domain) <- model$parameters
+
+  if (!is.matrix(domain)) {
+    cli::cli_abort("Expected 'model$domain' to be a matrix if non-NULL",
+                   call = call)
+  }
+  if (ncol(domain) != 2) {
+    cli::cli_abort(
+      c(paste("Expected 'model$domain' to have 2 columns,",
+              "but it had {ncol(domain)}"),
+        i = paste("Because your domain is unnamed, if given it must",
+                  "include all parameters in the same order as your model")),
+      call = call)
+  }
+
+  nms <- rownames(domain)
+  if (is.null(nms)) {
+    if (nrow(domain) != n_pars) {
+      cli::cli_abort(
+        paste("Expected 'model$domain' to have {n_pars} row{?s},",
+              "but it had {nrow(domain)}"),
+        call = call)
+    }
+    rownames(domain) <- model$parameters
+  } else {
+    ## We might treat parameters that begin with '[' specially and
+    ## allow these to replicate.  So if the user has a[1], a[2],
+    ## a[3] then a row with 'a' will apply across all of these that
+    ## are not explicitly given.
+    err <- setdiff(nms, model$parameters)
+    if (length(err) > 0) {
+      cli::cli_abort(
+        c("Unexpected parameters found in 'model$domain' rownames",
+          set_names(err, "x")),
+        call = call)
+    }
+    msg <- setdiff(model$parameters, nms)
+    if (length(msg) > 0) {
+      extra <- cbind(rep(-Inf, length(msg)), rep(Inf, length(msg)))
+      rownames(extra) <- msg
+      domain <- rbind(domain, extra)
+    }
+    domain <- domain[model$parameters, , drop = FALSE]
+  }
+
   domain
 }
 

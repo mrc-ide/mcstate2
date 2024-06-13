@@ -61,9 +61,14 @@ as the first and second column.  Infinite values (\code{-Inf} or
 \code{Inf}) should be used where the parameter has infinite domain up
 or down.  Currently used to translate from a bounded to
 unbounded space for HMC, but we might also use this for
-reflecting proposals in MCMC too.  If not present we assume that
-the model is valid everywhere (i.e., that all parameters are
-valid from \code{-Inf} to \code{Inf}.
+reflecting proposals in MCMC too, as well as a fast way of
+avoiding calculating densities where proposals fall out of
+bounds.  If not present we assume that the model is valid
+everywhere (i.e., that all parameters are valid from \code{-Inf} to
+\code{Inf}.  If unnamed, you must provide a domain for all
+parameters.  If named, then you can provide a subset, with
+parameters that are not included assumed to have a domain of
+\verb{(-Inf, Inf)}.
 \item \code{direct_sample}: A function to sample directly from the
 parameter space, given an \link{mcstate_rng} object to sample from.
 In the case where a model returns a posterior (e.g., in Bayesian
