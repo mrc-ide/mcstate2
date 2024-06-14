@@ -32,20 +32,21 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     require_deterministic(model, "Can't use HMC with stochastic models")
     require_gradient(model, "Can't use HMC without a gradient")
 
-    internal$transform <- hmc_transform(model$domain)
-    n_pars <- length(model$parameters)
+    internal$multiple_parameters <- length(dim2(pars)) > 1
+    internal$transform <- hmc_transform(model$domain,
+                                        internal$multiple_parameters)
+    n_sets <- if (internal$multiple_parameters) ncol(pars) else 1L
+    n_pars <- if (internal$multiple_parameters) nrow(pars) else length(pars)
     if (is.null(vcv)) {
       internal$sample_momentum <- function(rng) rng$random_normal(n_pars)
     } else {
-      if (n_pars != nrow(vcv)) {
-        cli::cli_abort(
-          "Incompatible length parameters ({n_pars}) and vcv ({nrow(vcv)})")
-      }
+      vcv <- sampler_validate_vcv(vcv, pars)
       internal$sample_momentum <- make_rmvnorm(vcv, centred = TRUE)
     }
     if (debug) {
       internal$history <- list()
     }
+    internal$n_sets <- n_sets
     initialise_state(pars, model, observer, rng)
   }
 
@@ -60,8 +61,10 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
     theta_next <- theta
 
     if (debug) {
-      history <- matrix(NA_real_, length(theta), n_integration_steps + 1)
-      history[, 1] <- pars_next
+      n_sets <- internal$n_sets
+      n_pars <- length(model$parameters)
+      history <- array(NA_real_, c(n_pars, n_sets, n_integration_steps + 1))
+      history[, , 1] <- pars_next
     }
 
     v <- internal$sample_momentum(rng)
@@ -78,7 +81,7 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
         v_next <- v_next + epsilon * compute_gradient(pars_next)
       }
       if (debug) {
-        history[, i + 1] <- pars_next
+        history[, , i + 1] <- pars_next
       }
     }
 
@@ -94,47 +97,79 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
 
     ## Kinetic energies at the start (energy) and end (energy_next) of
     ## the trajectories
-    energy <- sum(v^2) / 2
-    energy_next <- sum(v_next^2) / 2
+    if (internal$multiple_parameters) {
+      energy <- colSums(v^2) / 2
+      energy_next <- colSums(v_next^2) / 2
+    } else {
+      energy <- sum(v^2) / 2
+      energy_next <- sum(v_next^2) / 2
+    }
 
     ## Accept or reject the state at end of trajectory, returning
     ## either the position at the end of the trajectory or the initial
     ## position
     u <- rng$random_real(1)
     accept <- u < exp(density_next - state$density + energy - energy_next)
-    if (accept) {
-      state <- update_state(state, pars_next, density_next, model, observer,
-                            rng)
-    }
 
     if (debug) {
       internal$history <-
         c(internal$history, list(list(pars = history, accept = accept)))
     }
 
+    state <- update_state(state, pars_next, density_next, accept,
+                          model, observer, rng)
+
     state
   }
 
   finalise <- function(state, model, rng) {
     if (debug) {
-      pars <- lapply(internal$history, "[[", "pars")
-      pars <- array_bind(
-        arrays = lapply(internal$history, "[[", "pars"),
-        after = 2)
+      pars <- array_bind(arrays = lapply(internal$history, "[[", "pars"),
+                         after = 3)
+      accept <- lapply(internal$history, function(x) x$accept)
+      if (internal$multiple_parameters) {
+        pars <- aperm(pars, c(1, 3, 4, 2))
+        accept <- matrix(unlist(accept), ncol = internal$n_sets, byrow = TRUE)
+      } else {
+        dim(pars) <- dim(pars)[-2] # redundant sets dimension
+        accept <- vlapply(accept, identity)
+      }
       rownames(pars) <- model$parameters
-      accept <- vlapply(internal$history, "[[", "accept")
-      list(debug = list(pars = pars, accept = accept))
+      list(pars = pars, accept = accept)
     } else {
       NULL
     }
   }
 
   get_internal_state <- function() {
-    list(history = internal$history)
+    if (!debug) {
+      return(NULL)
+    }
+    history <- internal$history
+    if (internal$multiple_parameters) {
+      ## Split this by chain:
+      lapply(seq_len(internal$n_sets), function(i) {
+        lapply(history, function(x) {
+          list(pars = x$pars[, i, , drop = FALSE], accept = x$accept[[i]])
+        })
+      })
+    } else {
+      history
+    }
   }
 
   set_internal_state <- function(state) {
-    internal$history <- state$history
+    if (internal$multiple_parameters && !is.null(state)) {
+      ## Fairly ugly transpose here; there will be other ways of doing
+      ## this to explore later.
+      internal$history <- lapply(seq_len(length(state[[1]])), function(j) {
+        list(pars = array_bind(arrays = lapply(state, function(x) x[[j]]$pars),
+                               on = 2),
+             accept = vlapply(state, function(x) x[[j]]$accept))
+      })
+    } else {
+      internal$history <- state
+    }
   }
 
   mcstate_sampler("Hamiltonian Monte Carlo",
@@ -146,7 +181,7 @@ mcstate_sampler_hmc <- function(epsilon = 0.015, n_integration_steps = 10,
 }
 
 
-hmc_transform <- function(domain) {
+hmc_transform <- function(domain, multiple_parameters) {
   lower <- domain[, 1]
   upper <- domain[, 2]
 
@@ -163,25 +198,50 @@ hmc_transform <- function(domain) {
   a <- lower[is_bounded]
   b <- upper[is_bounded]
 
-  list(
-    ## Transform from R^n into the model space
-    rn2model = function(theta) {
+  if (multiple_parameters) {
+    rn2model <- function(theta) {
+      theta[is_semi_infinite, ] <-
+        lower[is_semi_infinite] + exp(theta[is_semi_infinite, ])
+      theta[is_bounded, ] <- ilogit_bounded(theta[is_bounded, ], a, b)
+      theta
+    }
+
+    model2rn <- function(x) {
+      x[is_semi_infinite, ] <-
+        log(x[is_semi_infinite, ] - lower[is_semi_infinite])
+      x[is_bounded, ] <- logit_bounded(x[is_bounded, ], a, b)
+      x
+    }
+
+    ## Derivative of rn2model, as a multiplier to f'(x); we pass in
+    ## model parameters here, not R^n space.
+    deriv <- function(x) {
+      ret <- matrix(1, nrow(x), ncol(x))
+      ## Here we want
+      ## d/dtheta f(exp(theta)) -> exp(theta) f'(exp(theta))
+      ##                        -> x f'(x)
+      ret[is_semi_infinite, ] <- x[is_semi_infinite, ]
+      ## See below, this one is a bit harder
+      ret[is_bounded, ] <- dilogit_bounded(x[is_bounded, ], a, b)
+      ret
+    }
+  } else {
+    rn2model <- function(theta) {
       theta[is_semi_infinite] <-
         lower[is_semi_infinite] + exp(theta[is_semi_infinite])
       theta[is_bounded] <- ilogit_bounded(theta[is_bounded], a, b)
       theta
-    },
+    }
 
-    ## Transform from model space to R^n
-    model2rn = function(x) {
+    model2rn <- function(x) {
       x[is_semi_infinite] <- log(x[is_semi_infinite] - lower[is_semi_infinite])
       x[is_bounded] <- logit_bounded(x[is_bounded], a, b)
       x
-    },
+    }
 
     ## Derivative of rn2model, as a multiplier to f'(x); we pass in
     ## model parameters here, not R^n space.
-    deriv = function(x) {
+    deriv <- function(x) {
       ret <- numeric(length(x))
       ## d/dtheta theta -> 1
       ret[is_infinite] <- 1
@@ -192,7 +252,17 @@ hmc_transform <- function(domain) {
       ## See below, this one is a bit harder
       ret[is_bounded] <- dilogit_bounded(x[is_bounded], a, b)
       ret
-    })
+    }
+  }
+
+  list(
+    ## Transform from R^n into the model space
+    rn2model = rn2model,
+    ## Transform from model space to R^n
+    model2rn = model2rn,
+    ## Derivative of rn2model, as a multiplier to f'(x); we pass in
+    ## model parameters here, not R^n space.
+    deriv = deriv)
 }
 
 

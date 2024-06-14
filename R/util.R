@@ -3,11 +3,35 @@
 }
 
 
-check_vcv <- function(vcv, name = deparse(substitute(vcv)), call = NULL) {
-  if (!is.matrix(vcv)) {
-    cli::cli_abort("Expected '{name}' to be a matrix",
-                   arg = name, call = call)
+check_vcv <- function(vcv, allow_3d = FALSE, name = deparse(substitute(vcv)),
+                      call = NULL) {
+  if (allow_3d && length(dim(vcv)) == 3) {
+    check_vcv_array(vcv, name, call = environment())
+  } else if (is.matrix(vcv)) {
+    check_vcv_matrix(vcv, name, call = environment())
+  } else {
+    what <- if (allow_3d) "matrix or 3d array" else "matrix"
+    cli::cli_abort("Expected a {what} for '{name}'", call = call)
   }
+}
+
+
+check_vcv_array <- function(vcv, name, call) {
+  len <- dim(vcv)[[3]]
+  n <- nrow(vcv)
+  if (len == 0) {
+    cli::cli_abort(
+      "At least one vcv required within a vcv array",
+      call = call)
+  }
+  for (i in seq_len(len)) {
+    m <- array(vcv[, , i, drop = FALSE], dim(vcv)[1:2])
+    check_vcv_matrix(m, name = sprintf("%s[, , %d]", name, i), call = call)
+  }
+}
+
+
+check_vcv_matrix <- function(vcv, name, call) {
   if (!isSymmetric(vcv)) {
     cli::cli_abort("Expected '{name}' to be symmetric",
                    arg = name, call = call)

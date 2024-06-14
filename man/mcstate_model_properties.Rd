@@ -8,7 +8,8 @@ mcstate_model_properties(
   has_gradient = NULL,
   has_direct_sample = NULL,
   is_stochastic = NULL,
-  has_parameter_groups = NULL
+  has_parameter_groups = NULL,
+  allow_multiple_parameters = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,17 @@ field within the \code{model} object passed to \link{mcstate_model}, and
 by the presence of a \code{by_group} argument to \code{density} and (later
 we may also support this in \code{gradient}).  Use \code{NULL} (the
 default) to detect this from the model.}
+
+\item{allow_multiple_parameters}{Logical, indicating if the
+density calculation can support being passed a matrix of
+parameters (with each column corresponding to a different
+parameter set) and return a vector of densities.  If \code{FALSE}, we
+will support some different approaches to sort this out for you
+if this feature is needed.  This cannot be detected from the
+model, and the default is \code{FALSE} because it's not always
+straightforward to implement.  However, where it is possible it
+may be much more efficient (via vectorisation or
+parallelisation) to do this yourself.}
 }
 \value{
 A list of class \code{mcstate_model_properties} which should

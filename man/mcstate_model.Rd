@@ -50,7 +50,9 @@ vector (a numeric vector) and return a single value.  This is
 the posterior probability density in Bayesian inference, but it
 could be anything really.  Models can return \code{-Inf} if things
 are impossible, and we'll try and cope gracefully with that
-wherever possible.
+wherever possible.  If the property \code{allow_multiple_parameters}
+is \code{TRUE}, then this function must be able to handle a matrix
+argument parameters and return a vector valued density.
 \item \code{parameters}: A character vector of parameter names.  This
 vector is the source of truth for the length of the parameter
 vector.

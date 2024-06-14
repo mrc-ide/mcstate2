@@ -19,7 +19,8 @@ test_that("can create a more interesting model", {
                mcstate_model_properties(has_gradient = TRUE,
                                         has_direct_sample = TRUE,
                                         is_stochastic = FALSE,
-                                        has_parameter_groups = FALSE))
+                                        has_parameter_groups = FALSE,
+                                        allow_multiple_parameters = TRUE))
   expect_equal(m$domain, rbind(gamma = c(0, Inf)))
   expect_equal(m$parameters, "gamma")
   expect_equal(m$density(1), dgamma(1, 1, 1, log = TRUE))

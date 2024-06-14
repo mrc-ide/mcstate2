@@ -27,7 +27,7 @@ test_that("null progress bar does nothing", {
 
 test_that("can format overall progress", {
   withr::local_options(cli.num_colors = 1)
-  overall <- progress_overall(4, 100)
+  overall <- progress_overall(4, 100, TRUE)
   expect_equal(
     overall(c(100, 30, 10, 0)),
     paste0("[",
@@ -48,7 +48,15 @@ test_that("can format overall progress", {
 
 
 test_that("overall progress is empty with one chain", {
-  overall <- progress_overall(1, 100)
+  overall <- progress_overall(1, 100, TRUE)
+  expect_equal(overall(0), "")
+  expect_equal(overall(50), "")
+  expect_equal(overall(100), "")
+})
+
+
+test_that("overall progress is empty if disabled", {
+  overall <- progress_overall(4, 100, FALSE)
   expect_equal(overall(0), "")
   expect_equal(overall(50), "")
   expect_equal(overall(100), "")

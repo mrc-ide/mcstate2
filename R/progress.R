@@ -1,7 +1,8 @@
-progress_bar <- function(n_chains, n_steps, progress, call = NULL) {
+progress_bar <- function(n_chains, n_steps, progress, show_overall,
+                         call = NULL) {
   progress <- show_progress_bar(progress, call)
   if (progress) {
-    progress_bar_detail(n_chains, n_steps)
+    progress_bar_detail(n_chains, n_steps, show_overall)
   } else {
     progress_bar_null()
   }
@@ -25,10 +26,10 @@ show_progress_bar <- function(progress, call = NULL) {
 ## might be the best we can do for some of the other parallel
 ## backends, but we'll see how packages that implement progress bars
 ## there cope.
-progress_bar_detail <- function(n_chains, n_steps) {
+progress_bar_detail <- function(n_chains, n_steps, show_overall) {
   e <- new.env()
   e$n <- rep(0, n_chains)
-  overall <- progress_overall(n_chains, n_steps)
+  overall <- progress_overall(n_chains, n_steps, show_overall)
   fmt <- paste("Sampling {overall(e$n)} {cli::pb_bar} |",
                "{cli::pb_percent} ETA: {cli::pb_eta}")
   id <- cli::cli_progress_bar(
@@ -38,7 +39,7 @@ progress_bar_detail <- function(n_chains, n_steps) {
 
   function(chain_index) {
     function(at) {
-      e$n[[chain_index]] <- at
+      e$n[chain_index] <- at
       cli::cli_progress_update(id = id, set = sum(e$n))
     }
   }
@@ -54,8 +55,8 @@ progress_bar_null <- function(...) {
 }
 
 
-progress_overall <- function(n_chains, n_steps) {
-  if (n_chains == 1) {
+progress_overall <- function(n_chains, n_steps, show_overall) {
+  if (n_chains == 1 || !show_overall) {
     return(function(n) "")
   }
   sym <- unlist(cli::symbol[paste0("lower_block_", 1:8)], use.names = FALSE)

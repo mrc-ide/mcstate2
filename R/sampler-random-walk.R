@@ -12,16 +12,18 @@
 ##'
 ##' @export
 mcstate_sampler_random_walk <- function(vcv = NULL) {
-  check_vcv(vcv, call = environment())
+  check_vcv(vcv, allow_3d = TRUE, call = environment())
   internal <- new.env()
 
   initialise <- function(pars, model, observer, rng) {
     n_pars <- length(model$parameters)
-    n_vcv <- nrow(vcv)
-    if (n_pars != n_vcv) {
-      cli::cli_abort(
-        "Incompatible length parameters ({n_pars}) and vcv ({n_vcv})")
+    internal$multiple_parameters <- length(dim2(pars)) > 1
+    if (internal$multiple_parameters) {
+      ## this is enforced elsewhere
+      stopifnot(model$properties$allow_multiple_parameters)
     }
+
+    vcv <- sampler_validate_vcv(vcv, pars)
     internal$proposal <- make_rmvnorm(vcv)
     initialise_state(pars, model, observer, rng)
   }
@@ -29,11 +31,9 @@ mcstate_sampler_random_walk <- function(vcv = NULL) {
   step <- function(state, model, observer, rng) {
     pars_next <- internal$proposal(state$pars, rng)
     density_next <- model$density(pars_next)
-
-    if (density_next - state$density > log(rng$random_real(1))) {
-      state <- update_state(state, pars_next, density_next,
-                            model, observer, rng)
-    }
+    accept <- density_next - state$density > log(rng$random_real(1))
+    state <- update_state(state, pars_next, density_next, accept,
+                          model, observer, rng)
     state
   }
 
