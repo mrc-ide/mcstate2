@@ -61,7 +61,7 @@
 ##'
 ##' @param acceptance_target The target for the fraction of proposals
 ##'   that should be accepted (optimally) for the adaptive part of the
-##'   mixture model.
+##'   chain.
 ##'
 ##' @param forget_rate The rate of forgetting early parameter sets from the
 ##'   empirical variance-covariance matrix in the MCMC chains. For example,

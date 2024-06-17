@@ -25,6 +25,7 @@ reference:
     - mcstate_sampler_adaptive
     - mcstate_sampler_hmc
     - mcstate_sampler_nested_random_walk
+    - mcstate_sampler_nested_adaptive
 
   - subtitle: Chain runners
     contents:
