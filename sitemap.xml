@@ -1,78 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/404.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/articles/mcstate2.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/articles/samplers.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_dsl.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model_combine.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model_properties.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_observer.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_packer.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng_distributed.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng_pointer.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_runner_parallel.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_runner_serial.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sample.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sample_continue.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_adaptive.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_hmc.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_nested_random_walk.html</loc>
-  </url>
-  <url>
-    <loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_random_walk.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://mrc-ide.github.io/orderly2/404.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/LICENSE-text.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/articles/index.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/articles/mcstate2.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/articles/samplers.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/authors.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/index.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/index.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_dsl.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model_combine.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model_properties.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_observer.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_packer.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng_distributed.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_rng_pointer.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_runner_parallel.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_runner_serial.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sample.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sample_continue.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_adaptive.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_hmc.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_nested_random_walk.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_sampler_random_walk.html</loc></url>
 </urlset>
+
