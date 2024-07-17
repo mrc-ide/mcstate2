@@ -86,15 +86,25 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4385ba230&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$direct_sample</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4385ba230&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -108,21 +118,28 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> a -Inf  Inf</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4385ba230&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4385ba230&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
@@ -132,7 +149,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $is_stochastic</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
@@ -154,18 +171,29 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a" "b"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     b &lt;- .x[2L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["b"]] &lt;- (function (x, rate) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(b, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["b"]] &lt;- (function (x, rate) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(pars[["b"]], 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4386c1cf0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$direct_sample</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["b"]] &lt;- (function (rng, rate) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$exponential(1, rate))(rng, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4386c1cf0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -180,24 +208,32 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b -Inf  Inf</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     b &lt;- .x[2L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["b"]] &lt;- (function (x, rate) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(b, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["b"]] &lt;- (function (x, rate) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(pars[["b"]], 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4386c1cf0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["b"]] &lt;- (function (rng, rate) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$exponential(1, rate))(rng, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c4386c1cf0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
@@ -207,7 +243,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $is_stochastic</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
@@ -228,15 +264,25 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c438790240&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$direct_sample</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c438790240&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -250,21 +296,28 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> a -Inf  Inf</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (.x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     a &lt;- .x[1L]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density &lt;- numeric()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     .density[["a"]] &lt;- (function (x, mean, sd) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(a, 0, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(.density)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density &lt;- numeric()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     density[["a"]] &lt;- (function (x, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: namespace:mcstate2&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c438790240&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars &lt;- list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pars[["a"]] &lt;- (function (rng, mean, sd) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55c438790240&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
@@ -274,7 +327,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $is_stochastic</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
