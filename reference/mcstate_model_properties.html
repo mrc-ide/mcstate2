@@ -56,7 +56,8 @@ have these properties.</p>
 <span>  has_gradient <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  has_direct_sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  is_stochastic <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  has_parameter_groups <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  has_parameter_groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  allow_multiple_parameters <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,6 +91,19 @@ field within the <code>model</code> object passed to <a href="mcstate_model.html
 by the presence of a <code>by_group</code> argument to <code>density</code> and (later
 we may also support this in <code>gradient</code>).  Use <code>NULL</code> (the
 default) to detect this from the model.</p></dd>
+
+
+<dt id="arg-allow-multiple-parameters">allow_multiple_parameters<a class="anchor" aria-label="anchor" href="#arg-allow-multiple-parameters"></a></dt>
+<dd><p>Logical, indicating if the
+density calculation can support being passed a matrix of
+parameters (with each column corresponding to a different
+parameter set) and return a vector of densities.  If <code>FALSE</code>, we
+will support some different approaches to sort this out for you
+if this feature is needed.  This cannot be detected from the
+model, and the default is <code>FALSE</code> because it's not always
+straightforward to implement.  However, where it is possible it
+may be much more efficient (via vectorisation or
+parallelisation) to do this yourself.</p></dd>
 
 </dl></div>
     <div class="section level2">
