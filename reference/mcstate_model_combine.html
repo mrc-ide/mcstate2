@@ -119,6 +119,8 @@ take that function (this is the case for a prior model when
 combined with a likelihood).  Other cases will be errors, which
 can be avoided by setting <code>has_direct_gradient = FALSE</code> in
 <code>properties</code>.</p></li>
+<li><p><code>is_stochastic</code>: a model is stochastic if <em>either</em> component is
+stochastic.</p></li>
 </ul><p>The properties of the model will be combined as above, reflecting
 the properties of the joint model.</p>
 <p>The <code>model</code> field will be an ordered, unnamed, list containing the
