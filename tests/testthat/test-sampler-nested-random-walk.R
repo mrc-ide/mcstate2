@@ -195,5 +195,11 @@ test_that("can run an observer during a nested fit", {
   expect_equal(
     dim(res$observations$n),
     c(1, 100, 1))
-  expect_gt(max(res$observations$n), 120) # called way more than once per step
+  
+  pars <- cbind(res$initial[, 1], res$pars[, , 1])
+  pars_update <- apply(pars, 1, diff) != 0
+  ## n_update: 1 for initial + num of base updates + num of >0 group updates 
+  n_update <- 1 + sum(pars_update[, "sigma"]) + 
+    sum(rowSums(pars_update[, paste0("mu_", seq_len(5))]) > 0)
+  expect_equal(max(res$observations$n), n_update)
 })
