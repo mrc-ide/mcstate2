@@ -2,10 +2,11 @@ pandoc: 3.1.11
 pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
+  dsl-errors: dsl-errors.html
   dsl: dsl.html
   mcstate2: mcstate2.html
   samplers: samplers.html
-last_built: 2024-08-06T11:15Z
+last_built: 2024-08-06T22:29Z
 urls:
   reference: https://mrc-ide.github.io/orderly2/reference
   article: https://mrc-ide.github.io/orderly2/articles

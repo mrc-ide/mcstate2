@@ -1,6 +1,7 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://mrc-ide.github.io/orderly2/404.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/LICENSE-text.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/articles/dsl-errors.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/articles/dsl.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/articles/index.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/articles/mcstate2.html</loc></url>
@@ -12,6 +13,7 @@
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_differentiation.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_domain_expand.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_dsl.html</loc></url>
+<url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_dsl_error_explain.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_dsl_parse_distribution.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model.html</loc></url>
 <url><loc>https://mrc-ide.github.io/orderly2/reference/mcstate_model_combine.html</loc></url>
