@@ -56,17 +56,28 @@ ex_simple_nested_with_base <- function(n_groups) {
         c(sigma, rng$normal(n_groups, 0, sigma))
       },
       density = function(x, by_group = FALSE) {
-        sigma <- x[[1]]
-        if (sigma <= 0) {
-          z <- rep(-Inf, length(x) - 1)
-        } else {
-          z <- dnorm(x[-1], 0, x[[1]], log = TRUE)
+        density1 <- function(y) {
+          sigma <- y[[1]]
+          if (sigma <= 0) {
+            rep(-Inf, length(y) - 1)
+          } else {
+            dnorm(y[-1], 0, y[[1]], log = TRUE)
+          }
         }
-        value <- sum(z) + dunif(x[[1]], 0, 10, log = TRUE)
-        if (by_group) structure(value, "by_group" = z) else value
+        if (is.matrix(x)) {
+          z <- vapply(seq_len(ncol(x)), function(i) density1(x[, i]),
+                      numeric(nrow(x) - 1))
+          value <- colSums(z) + dunif(x[1, ], 0, 10, log = TRUE)
+          if (by_group) structure(value, "by_group" = z) else value
+        } else {
+          z <- density1(x)
+          value <- sum(z) + dunif(x[[1]], 0, 10, log = TRUE)
+          if (by_group) structure(value, "by_group" = z) else value
+        }
       },
       parameter_groups = c(0, seq_len(n_groups)),
-      mu = mu)))
+      mu = mu),
+      mcstate_model_properties(allow_multiple_parameters = TRUE)))
 }
 
 

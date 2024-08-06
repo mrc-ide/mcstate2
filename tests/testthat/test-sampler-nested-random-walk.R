@@ -25,7 +25,7 @@ test_that("validate vcv inputs on construction of sampler", {
     "Expected 'vcv' to have elements 'base' and 'groups'")
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = TRUE, groups = TRUE)),
-    "Expected a matrix for 'vcv$base'",
+    "Expected a matrix or 3d array for 'vcv$base'",
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = TRUE)),
@@ -37,7 +37,7 @@ test_that("validate vcv inputs on construction of sampler", {
     fixed = TRUE)
   expect_error(
     mcstate_sampler_nested_random_walk(list(base = NULL, groups = list(TRUE))),
-    "Expected a matrix for 'vcv$groups[1]'",
+    "Expected a matrix or 3d array for 'vcv$groups[1]'",
     fixed = TRUE)
 
   vcv <- list(base = diag(1), groups = list(diag(2), diag(3)))
@@ -92,7 +92,9 @@ test_that("can build nested proposal functions", {
   vcv <- list(base = NULL,
               groups = list(v, v / 100))
   g <- c(1, 1, 2, 2)
-  f <- nested_proposal(vcv, g)
+  domain <- t(array(c(-Inf, Inf), c(2, 4)))
+  
+  f <- nested_proposal(vcv, g, rep(0, 4), domain)
 
   expect_null(f$base)
   expect_true(is.function(f$groups))
@@ -112,8 +114,11 @@ test_that("can build nested proposal functions with base components", {
   v <- matrix(c(1, .5, .5, 1), 2, 2)
   vcv <- list(base = v / 10,
               groups = list(v, v / 100))
-  f <- nested_proposal(vcv, c(0, 0, 1, 1, 2, 2))
-  g <- nested_proposal(list(base = NULL, groups = vcv$groups), c(1, 1, 2, 2))
+  domain <- t(array(c(-Inf, Inf), c(2, 6)))
+  f <- nested_proposal(vcv, c(0, 0, 1, 1, 2, 2), 1:6, domain)
+  g <- nested_proposal(list(base = NULL, groups = vcv$groups), c(1, 1, 2, 2),
+                       3:6, domain[3:6, ])
+  
 
   expect_true(is.function(f$base))
   expect_true(is.function(f$groups))
@@ -196,4 +201,42 @@ test_that("can run an observer during a nested fit", {
     dim(res$observations$n),
     c(1, 100, 1))
   expect_gt(max(res$observations$n), 120) # called way more than once per step
+})
+
+
+test_that("can run nested random walk sampler simultaneously", {
+  set.seed(1)
+  ng <- 5
+  m <- ex_simple_nested_with_base(ng)
+  sampler <- mcstate_sampler_nested_random_walk(
+    list(base = diag(1), groups = rep(list(diag(1)), ng)))
+  
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 100, n_chains = 3)
+  
+  set.seed(1)
+  runner <- mcstate_runner_simultaneous()
+  res2 <- mcstate_sample(m, sampler, 100, n_chains = 3, runner = runner)
+  expect_equal(res1, res2)
+})
+
+
+test_that("can run nested random walk sampler with rejecting boundaries
+          simultaneously", {
+  set.seed(1)
+  ng <- 5
+  m <- ex_simple_nested_with_base(ng)
+  m$domain[, 1] <- -3
+  m$domain[, 2] <- 3
+  sampler <- mcstate_sampler_nested_random_walk(
+    list(base = diag(1), groups = rep(list(diag(1)), ng)),
+    boundaries = "reject")
+  
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 100, n_chains = 3)
+  
+  set.seed(1)
+  runner <- mcstate_runner_simultaneous()
+  res2 <- mcstate_sample(m, sampler, 100, n_chains = 3, runner = runner)
+  expect_equal(res1, res2)
 })

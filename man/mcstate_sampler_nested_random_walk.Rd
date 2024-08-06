@@ -4,12 +4,27 @@
 \alias{mcstate_sampler_nested_random_walk}
 \title{Nested Random Walk Sampler}
 \usage{
-mcstate_sampler_nested_random_walk(vcv)
+mcstate_sampler_nested_random_walk(vcv, boundaries = "reflect")
 }
 \arguments{
 \item{vcv}{A list of variance covariance matrices.  We expect this
 to be a list with elements \code{base} and \code{groups} corresponding to
 the covariance matrix for base parameters (if any) and groups.}
+
+\item{boundaries}{Control the behaviour of proposals that are
+outside the model domain.  The supported options are:
+\itemize{
+\item "reflect" (the default): we reflect proposed parameters that
+lie outside the domain back into the domain (as many times as
+needed)
+\item "reject": we do not evaluate the density function, and return
+\code{-Inf} for its density instead.
+\item "ignore": evaluate the point anyway, even if it lies outside
+the domain.
+}
+
+The initial point selected will lie within the domain, as this is
+enforced by \link{mcstate_sample}.}
 }
 \value{
 A \code{mcstate_sampler} object, which can be used with
