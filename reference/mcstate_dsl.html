@@ -48,7 +48,7 @@ change name in future, as will its interface.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_dsl</span><span class="op">(</span><span class="va">x</span>, type <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mcstate_dsl</span><span class="op">(</span><span class="va">x</span>, type <span class="op">=</span> <span class="cn">NULL</span>, gradient <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -69,6 +69,16 @@ details.</p></dd>
 <dd><p>Force interpretation of the type of expression given
 as <code>x</code>.  If given, valid options are <code>expression</code>, <code>text</code> or
 <code>file</code>.</p></dd>
+
+
+<dt id="arg-gradient">gradient<a class="anchor" aria-label="anchor" href="#arg-gradient"></a></dt>
+<dd><p>Control gradient derivation.  If <code>NULL</code> (the
+default) we try and generate a gradient function for your model
+and warn if this is not possible.  If <code>FALSE</code>, then we do not
+attempt to construct a gradient function, which prevents a
+warning being generated if this is not possible.  If <code>TRUE</code>,
+then we will error if it is not possible to create a gradient
+function.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -96,7 +106,16 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cc1962c0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$gradient</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$domain</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [,1] [,2]</span>
@@ -110,7 +129,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cc1962c0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -132,10 +151,16 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cc1962c0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
@@ -145,14 +170,14 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cc1962c0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558116e6cfe8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $properties</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
@@ -190,7 +215,17 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(pars[["b"]], 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbdad508&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$gradient</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_b"]] &lt;- -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     c(data[["__adjoint_a"]], data[["__adjoint_b"]])</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$domain</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [,1] [,2]</span>
@@ -207,7 +242,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$exponential(1, rate))(rng, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbdad508&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -232,10 +267,17 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dexp(x, rate, log = TRUE))(pars[["b"]], 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbdad508&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_b"]] &lt;- -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     c(data[["__adjoint_a"]], data[["__adjoint_b"]])</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
@@ -247,14 +289,14 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$exponential(1, rate))(rng, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbdad508&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x558117286cb0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $properties</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
@@ -289,7 +331,16 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbb4db58&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $model$gradient</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model$domain</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   [,1] [,2]</span>
@@ -303,7 +354,7 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbb4db58&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
@@ -325,10 +376,16 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     dnorm(x, mean, sd, log = TRUE))(pars[["a"]], 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     sum(density)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbb4db58&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> function (x) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data &lt;- packer$unpack(x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]] &lt;- (-data[["a"]] + -data[["a"]])/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     data[["__adjoint_a"]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function (rng) </span>
@@ -338,14 +395,14 @@ provide.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     rng$normal(1, mean, sd))(rng, 0, 1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     unlist(pars[packer$parameters], FALSE, FALSE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55e9cbb4db58&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55811766d0d8&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $rng_state</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $properties</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_gradient</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $has_direct_sample</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>

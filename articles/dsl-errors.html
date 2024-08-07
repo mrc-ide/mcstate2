@@ -194,6 +194,16 @@ and relationships) in order. However, because we forbid multiple
 assignment we may relax this in the future, but no existing programs
 should be changed.</p>
 </div>
+<div class="section level2">
+<h2 id="e206">
+<code>E206</code><a class="anchor" aria-label="anchor" href="#e206"></a>
+</h2>
+<p>Failed to differentiate the model. This error will only be seen where
+it was not possible to differentiate your model but you requested that a
+gradient be available. Not all functions supported in the dsl can
+currently be differentiated by mcstate2; if you think that yours should
+be, please let us know.</p>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
