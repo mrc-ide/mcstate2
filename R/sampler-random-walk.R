@@ -48,6 +48,7 @@ mcstate_sampler_random_walk <- function(vcv = NULL, boundaries = "reflect") {
   }
 
   step <- function(state, model, observer, rng) {
+    browser()
     pars_next <- internal$proposal(state$pars, rng)
     reject_some <- boundaries == "reject" &&
       !all(i <- is_parameters_in_domain(pars_next, model$domain))

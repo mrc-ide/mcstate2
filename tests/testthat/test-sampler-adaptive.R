@@ -100,14 +100,111 @@ test_that("can't use adaptive sampler with stochastic models", {
 })
 
 
-## This can be done, but it's pretty tedious bookkeeping, and worth
-## doing separately (once Ed has done the nested adaptive case too,
-## which is even worse bookkeeping).
-test_that("can't use adaptive sampler with simultaneous runner", {
+test_that("can run adaptive sampler simultaneously", {
   m <- ex_simple_gamma1()
   sampler <- mcstate_sampler_adaptive(initial_vcv = matrix(0.01, 1, 1))
+
+  set.seed(1)
+  res1 <- mcstate_sample(m, sampler, 100, n_chains = 3)
+
+  set.seed(1)
   runner <- mcstate_runner_simultaneous()
-  expect_error(
-    mcstate_sample(m, sampler, 100, n_chains = 3, runner = runner),
-    "Can't use 'mcstate_sampler_adaptive' with simultaneous chains")
+  res2 <- mcstate_sample(m, sampler, 100, n_chains = 3, runner = runner)
+  expect_equal(res1, res2)
+})
+
+test_that("can run sampler with reflecting boundaries", {
+  model <- mcstate_model(
+    list(parameters = "x",
+         domain = cbind(-1, 1),
+         density = function(x) {
+           if (abs(x) > 1) {
+             stop("parameter out of bounds")
+           }
+           0.5
+         },
+         direct_sample = function(rng) {
+           rng$uniform(1, -1, 1)
+         }))
+  
+  s1 <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "ignore")
+  s2 <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "reflect")
+  s3 <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "reject")
+  
+  expect_error(mcstate_sample(model, s1, 100), "parameter out of bounds")
+  
+  ## Seems to be a bit of a problem here - since the density is flat, the
+  ## acceptance probability is always 1. The effect on the scaling then is that
+  ## it just keeps increasing! When it gets large enough, it causes problems
+  ## with the reflecting, which throws some warnings about probable complete
+  ## loss of accuracy in modulus, and results in values lying on the boundary
+  res2 <- mcstate_sample(model, s2, 100)
+  r2 <- range(drop(res2$pars))
+  expect_gt(diff(r2), 0.75)
+  expect_gt(r2[[1]], -1)
+  expect_lt(r2[[2]], 1)
+  
+  res3 <- mcstate_sample(model, s3, 100)
+  r3 <- range(drop(res3$pars))
+  expect_gt(diff(r3), 0.75)
+  expect_gt(r3[[1]], -1)
+  expect_lt(r3[[2]], 1)
+  
+  ## Different with rejection than reflection, and more step
+  ## rejections when rejection used.
+  expect_true(!all(res2$pars == res3$pars))
+  expect_gt(sum(diff(drop(res3$pars)) == 0),
+            sum(diff(drop(res2$pars)) == 0))
+})
+
+
+test_that("can run sampler with rejecting boundaries", {
+  model <- mcstate_model(
+    list(parameters = "x",
+         domain = cbind(-1, 1),
+         density = function(x) {
+           if (abs(x) > 1) {
+             stop("parameter out of bounds")
+           }
+           0.5
+         },
+         direct_sample = function(rng) {
+           rng$uniform(1, -1, 1)
+         }))
+  
+  s1 <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "ignore")
+  s2 <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "reject")
+  
+  expect_error(mcstate_sample(model, s1, 100), "parameter out of bounds")
+  res <- mcstate_sample(model, s2, 100)
+  r <- range(drop(res$pars))
+  expect_gt(diff(r), 0.75)
+  expect_gt(r[[1]], -1)
+  expect_lt(r[[2]], 1)
+})
+
+
+test_that("can run sampler with rejecting boundaries simultaneously", {
+  m <- mcstate_model(
+    list(parameters = "x",
+         domain = cbind(-1, 1),
+         density = function(x) {
+           ifelse(abs(x) > 1, NA_real_, log(0.5))
+         },
+         direct_sample = function(rng) {
+           rng$uniform(1, -1, 1)
+         }),
+    mcstate_model_properties(allow_multiple_parameters = TRUE))
+  
+  s <- mcstate_sampler_adaptive(matrix(0.5, 1, 1), boundaries = "reject")
+  runner <- mcstate_runner_simultaneous()
+  
+  n_steps <- 30
+  
+  set.seed(1)
+  res <- mcstate_sample(m, s, n_steps, n_chains = 4, runner = runner)
+  set.seed(1)
+  cmp <- mcstate_sample(m, s, n_steps, n_chains = 4)
+  
+  expect_equal(res, cmp)
 })

@@ -16,7 +16,8 @@ mcstate_sampler_adaptive(
   forget_rate = 0.2,
   forget_end = Inf,
   adapt_end = Inf,
-  pre_diminish = 0
+  pre_diminish = 0,
+  boundaries = "reflect"
 )
 }
 \arguments{
@@ -87,6 +88,21 @@ diminishing adaptation of the scaling parameter from the offset, while
 Diminishing adaptation should help the scaling parameter to converge
 better, but while the chains find the location and scale of the posterior
 mode it might be useful to explore with it switched off.}
+
+\item{boundaries}{Control the behaviour of proposals that are
+outside the model domain.  The supported options are:
+\itemize{
+\item "reflect" (the default): we reflect proposed parameters that
+lie outside the domain back into the domain (as many times as
+needed)
+\item "reject": we do not evaluate the density function, and return
+\code{-Inf} for its density instead.
+\item "ignore": evaluate the point anyway, even if it lies outside
+the domain.
+}
+
+The initial point selected will lie within the domain, as this is
+enforced by \link{mcstate_sample}.}
 }
 \value{
 A \code{mcstate_sampler} object, which can be used with
