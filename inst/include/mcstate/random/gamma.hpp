@@ -81,7 +81,7 @@ real_type gamma_deterministic(real_type shape, real_type scale) {
 /// @param b Scale
 template <typename real_type, typename rng_state_type>
 __host__ __device__
-real_type gamma(rng_state_type& rng_state, real_type shape, real_type scale) {
+real_type gamma_scale(rng_state_type& rng_state, real_type shape, real_type scale) {
   static_assert(std::is_floating_point<real_type>::value,
                 "Only valid for floating-point types; use gamma<real_type>()");
 
@@ -104,10 +104,20 @@ real_type gamma(rng_state_type& rng_state, real_type shape, real_type scale) {
   }
 
   if (shape == 1) {
-    return exponential(rng_state, 1 / scale);
+    return exponential_mean(rng_state, scale);
   }
 
   return gamma_large<real_type>(rng_state, shape) * scale;
+}
+
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type gamma_rate(rng_state_type& rng_state, real_type shape, real_type rate) {
+  static_assert(std::is_floating_point<real_type>::value,
+                "Only valid for floating-point types; use gamma<real_type>()");
+  const auto scale = 1 / rate;
+  gamma_validate(shape, scale);
+  return gamma_scale<real_type>(rng_state, shape, scale);
 }
 
 }

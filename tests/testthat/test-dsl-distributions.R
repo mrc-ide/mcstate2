@@ -59,9 +59,9 @@ test_that("can sample from exponential distribution", {
   r1 <- mcstate_rng$new(1)
   r2 <- mcstate_rng$new(1)
   expect_equal(distr_exponential_rate$sample(r1, 0.4),
-               r2$exponential(1, 0.4))
+               r2$exponential_rate(1, 0.4))
   expect_equal(distr_exponential_mean$sample(r1, 0.4),
-               r2$exponential(1, 1 / 0.4))
+               r2$exponential_mean(1, 0.4))
 })
 
 

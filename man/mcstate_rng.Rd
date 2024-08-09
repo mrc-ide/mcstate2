@@ -102,14 +102,20 @@ rng$nbinomial(5, 10, 0.3)
 # Hypergeometric distributed random numbers with parameters n1, n2 and k
 rng$hypergeometric(5, 6, 10, 4)
 
-# Gamma distributed random numbers with parameters a and b
-rng$gamma(5, 0.5, 2)
+# Gamma distributed random numbers with parameters shape and scale
+rng$gamma_scale(5, 0.5, 2)
+
+# Gamma distributed random numbers with parameters shape and rate
+rng$gamma_rate(5, 0.5, 2)
 
 # Poisson distributed random numbers with mean lambda
 rng$poisson(5, 2)
 
 # Exponentially distributed random numbers with rate
-rng$exponential(5, 2)
+rng$exponential_rate(5, 2)
+
+# Exponentially distributed random numbers with mean
+rng$exponential_mean(5, 0.5)
 
 # Multinomial distributed random numbers with size and vector of
 # probabiltiies prob
@@ -136,9 +142,11 @@ rng$multinomial(5, 10, c(0.1, 0.3, 0.5, 0.1))
 \item \href{#method-mcstate_rng-binomial}{\code{mcstate_rng$binomial()}}
 \item \href{#method-mcstate_rng-nbinomial}{\code{mcstate_rng$nbinomial()}}
 \item \href{#method-mcstate_rng-hypergeometric}{\code{mcstate_rng$hypergeometric()}}
-\item \href{#method-mcstate_rng-gamma}{\code{mcstate_rng$gamma()}}
+\item \href{#method-mcstate_rng-gamma_scale}{\code{mcstate_rng$gamma_scale()}}
+\item \href{#method-mcstate_rng-gamma_rate}{\code{mcstate_rng$gamma_rate()}}
 \item \href{#method-mcstate_rng-poisson}{\code{mcstate_rng$poisson()}}
-\item \href{#method-mcstate_rng-exponential}{\code{mcstate_rng$exponential()}}
+\item \href{#method-mcstate_rng-exponential_rate}{\code{mcstate_rng$exponential_rate()}}
+\item \href{#method-mcstate_rng-exponential_mean}{\code{mcstate_rng$exponential_mean()}}
 \item \href{#method-mcstate_rng-cauchy}{\code{mcstate_rng$cauchy()}}
 \item \href{#method-mcstate_rng-multinomial}{\code{mcstate_rng$multinomial()}}
 \item \href{#method-mcstate_rng-state}{\code{mcstate_rng$state()}}
@@ -384,12 +392,12 @@ R's \link{rhyper})}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-mcstate_rng-gamma"></a>}}
-\if{latex}{\out{\hypertarget{method-mcstate_rng-gamma}{}}}
-\subsection{Method \code{gamma()}}{
+\if{html}{\out{<a id="method-mcstate_rng-gamma_scale"></a>}}
+\if{latex}{\out{\hypertarget{method-mcstate_rng-gamma_scale}{}}}
+\subsection{Method \code{gamma_scale()}}{
 Generate \code{n} numbers from a gamma distribution
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$gamma(n, shape, scale, n_threads = 1L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$gamma_scale(n, shape, scale, n_threads = 1L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -400,6 +408,30 @@ Generate \code{n} numbers from a gamma distribution
 \item{\code{shape}}{Shape}
 
 \item{\code{scale}}{Scale
+'}
+
+\item{\code{n_threads}}{Number of threads to use; see Details}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-mcstate_rng-gamma_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-mcstate_rng-gamma_rate}{}}}
+\subsection{Method \code{gamma_rate()}}{
+Generate \code{n} numbers from a gamma distribution
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$gamma_rate(n, shape, rate, n_threads = 1L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n}}{Number of samples to draw (per stream)}
+
+\item{\code{shape}}{Shape}
+
+\item{\code{rate}}{Rate
 '}
 
 \item{\code{n_threads}}{Number of threads to use; see Details}
@@ -430,12 +462,12 @@ lambda <= 10^7}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-mcstate_rng-exponential"></a>}}
-\if{latex}{\out{\hypertarget{method-mcstate_rng-exponential}{}}}
-\subsection{Method \code{exponential()}}{
+\if{html}{\out{<a id="method-mcstate_rng-exponential_rate"></a>}}
+\if{latex}{\out{\hypertarget{method-mcstate_rng-exponential_rate}{}}}
+\subsection{Method \code{exponential_rate()}}{
 Generate \code{n} numbers from a exponential distribution
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$exponential(n, rate, n_threads = 1L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$exponential_rate(n, rate, n_threads = 1L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -444,6 +476,27 @@ Generate \code{n} numbers from a exponential distribution
 \item{\code{n}}{Number of samples to draw (per stream)}
 
 \item{\code{rate}}{The rate of the exponential}
+
+\item{\code{n_threads}}{Number of threads to use; see Details}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-mcstate_rng-exponential_mean"></a>}}
+\if{latex}{\out{\hypertarget{method-mcstate_rng-exponential_mean}{}}}
+\subsection{Method \code{exponential_mean()}}{
+Generate \code{n} numbers from a exponential distribution
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{mcstate_rng$exponential_mean(n, mean, n_threads = 1L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n}}{Number of samples to draw (per stream)}
+
+\item{\code{mean}}{The mean of the exponential}
 
 \item{\code{n_threads}}{Number of threads to use; see Details}
 }

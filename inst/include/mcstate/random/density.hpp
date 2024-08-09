@@ -179,5 +179,79 @@ __host__ __device__ T poisson(int x, T lambda, bool log) {
   return maybe_log(ret, log);
 }
 
+template <typename T>
+__host__ __device__ T exponential_rate(T x, T rate, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "exponential should only be used with real types");
+#endif
+  return maybe_log(mcstate::math::log(rate) - rate * x, log);
+}
+
+// TODO: rename as scale
+template <typename T>
+__host__ __device__ T exponential_mean(T x, T mean, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "exponential should only be used with real types");
+#endif
+  return maybe_log(-mcstate::math::log(mean) - x / mean, log);
+}
+
+template <typename T>
+__host__ __device__ T gamma_rate(T x, T shape, T rate, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "gamma should only be used with real types");
+#endif
+  const auto ret = (shape - 1) * mcstate::math::log(x) - rate * x -
+    random::utils::lgamma(shape) + shape * mcstate::math::log(rate);
+  return maybe_log(ret, log);
+}
+
+template <typename T>
+__host__ __device__ T gamma_scale(T x, T shape, T scale, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "gamma should only be used with real types");
+#endif
+  const auto ret = (shape - 1) * mcstate::math::log(x) - x / scale -
+    random::utils::lgamma(shape) - shape * mcstate::math::log(scale);
+  return maybe_log(ret, log);
+}
+
+
+template <typename T>
+__host__ __device__ T uniform(T x, T min, T max, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "uniform should only be used with real types");
+#endif
+  const auto ret = (x < min || x > max) ? 0 : 1 / (max - min);
+  return log ? mcstate::math::log(ret) : ret;
+}
+
+template <typename T>
+__host__ __device__ T hypergeometric(T x, T n1, T n2, T k, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "hypergeometric should only be used with real types");
+#endif
+  const auto ret = lchoose<T>(n1, x) + lchoose<T>(n2, k - x) -
+    lchoose<T>(n1 + n2, k);
+  return maybe_log(ret, log);
+}
+
+template <typename T>
+__host__ __device__ T beta(T x, T a, T b, bool log) {
+#ifndef __CUDA_ARCH__
+  static_assert(std::is_floating_point<T>::value,
+                "beta should only be used with real types");
+#endif
+  const auto ret = (a - 1) * mcstate::math::log(x) +
+    (b - 1) * mcstate::math::log(1 - x) - lbeta(a, b);
+  return maybe_log(ret, log);
+}
+
 }
 }

@@ -3,6 +3,7 @@
 #include "mcstate/random/generator.hpp"
 #include "mcstate/random/prng.hpp"
 
+#include "mcstate/random/beta.hpp"
 #include "mcstate/random/binomial.hpp"
 #include "mcstate/random/cauchy.hpp"
 #include "mcstate/random/exponential.hpp"

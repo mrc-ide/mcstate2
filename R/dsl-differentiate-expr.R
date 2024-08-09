@@ -166,6 +166,18 @@ derivative <- list(
     a <- maths$rewrite(expr[[2]])
     maths$times(differentiate(a, name), call("sign", a))
   },
+  lbeta = function(expr, name) {
+    ## Consider lbeta(a, b) as lgamma(a) + lgamma(b) - lgamma(a + b)
+    ##
+    ## We rewrite the expression into this form and then differentiate
+    ## it:
+    a <- maths$rewrite(expr[[2]])
+    b <- maths$rewrite(expr[[3]])
+    expr2 <- maths$minus(
+      maths$plus(call("lgamma", a), call("lgamma", b)),
+      call("lgamma", maths$plus(a, b)))
+    differentiate(expr2, name)
+  },
   lgamma = function(expr, name) {
     a <- maths$rewrite(expr[[2]])
     maths$times(differentiate(a, name), call("digamma", a))

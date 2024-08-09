@@ -46,10 +46,19 @@ real_type exponential_rand(rng_state_type& rng_state) {
 __nv_exec_check_disable__
 template <typename real_type, typename rng_state_type>
 __host__ __device__
-real_type exponential(rng_state_type& rng_state, real_type rate) {
+real_type exponential_rate(rng_state_type& rng_state, real_type rate) {
   static_assert(std::is_floating_point<real_type>::value,
                 "Only valid for floating-point types; use exponential<real_type>()");
   return exponential_rand<real_type>(rng_state) / rate;
+}
+
+__nv_exec_check_disable__
+template <typename real_type, typename rng_state_type>
+__host__ __device__
+real_type exponential_mean(rng_state_type& rng_state, real_type mean) {
+  static_assert(std::is_floating_point<real_type>::value,
+                "Only valid for floating-point types; use exponential<real_type>()");
+  return exponential_rand<real_type>(rng_state) * mean;
 }
 
 }

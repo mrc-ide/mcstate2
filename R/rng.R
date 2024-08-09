@@ -101,14 +101,20 @@
 ##' # Hypergeometric distributed random numbers with parameters n1, n2 and k
 ##' rng$hypergeometric(5, 6, 10, 4)
 ##'
-##' # Gamma distributed random numbers with parameters a and b
-##' rng$gamma(5, 0.5, 2)
+##' # Gamma distributed random numbers with parameters shape and scale
+##' rng$gamma_scale(5, 0.5, 2)
+##'
+##' # Gamma distributed random numbers with parameters shape and rate
+##' rng$gamma_rate(5, 0.5, 2)
 ##'
 ##' # Poisson distributed random numbers with mean lambda
 ##' rng$poisson(5, 2)
 ##'
 ##' # Exponentially distributed random numbers with rate
-##' rng$exponential(5, 2)
+##' rng$exponential_rate(5, 2)
+##'
+##' # Exponentially distributed random numbers with mean
+##' rng$exponential_mean(5, 0.5)
 ##'
 ##' # Multinomial distributed random numbers with size and vector of
 ##' # probabiltiies prob
@@ -309,9 +315,23 @@ mcstate_rng <- R6::R6Class(
     ##' @param scale Scale
     ##''
     ##' @param n_threads Number of threads to use; see Details
-    gamma = function(n, shape, scale, n_threads = 1L) {
-      mcstate_rng_gamma(private$ptr, n, shape, scale, n_threads,
-                        private$float)
+    gamma_scale = function(n, shape, scale, n_threads = 1L) {
+      mcstate_rng_gamma_scale(private$ptr, n, shape, scale, n_threads,
+                              private$float)
+    },
+
+    ##' @description Generate `n` numbers from a gamma distribution
+    ##'
+    ##' @param n Number of samples to draw (per stream)
+    ##'
+    ##' @param shape Shape
+    ##'
+    ##' @param rate Rate
+    ##''
+    ##' @param n_threads Number of threads to use; see Details
+    gamma_rate = function(n, shape, rate, n_threads = 1L) {
+      mcstate_rng_gamma_rate(private$ptr, n, shape, rate, n_threads,
+                             private$float)
     },
 
     ##' @description Generate `n` numbers from a Poisson distribution
@@ -333,8 +353,21 @@ mcstate_rng <- R6::R6Class(
     ##' @param rate The rate of the exponential
     ##'
     ##' @param n_threads Number of threads to use; see Details
-    exponential = function(n, rate, n_threads = 1L) {
-      mcstate_rng_exponential(private$ptr, n, rate, n_threads, private$float)
+    exponential_rate = function(n, rate, n_threads = 1L) {
+      mcstate_rng_exponential_rate(private$ptr, n, rate, n_threads,
+                                   private$float)
+    },
+
+    ##' @description Generate `n` numbers from a exponential distribution
+    ##'
+    ##' @param n Number of samples to draw (per stream)
+    ##'
+    ##' @param mean The mean of the exponential
+    ##'
+    ##' @param n_threads Number of threads to use; see Details
+    exponential_mean = function(n, mean, n_threads = 1L) {
+      mcstate_rng_exponential_mean(private$ptr, n, mean, n_threads,
+                                   private$float)
     },
 
     ##' @description Generate `n` draws from a Cauchy distribution.
@@ -370,6 +403,19 @@ mcstate_rng <- R6::R6Class(
     multinomial = function(n, size, prob, n_threads = 1L) {
       mcstate_rng_multinomial(private$ptr, n, size, prob, n_threads,
                               private$float)
+    },
+
+    ##' @description Generate `n` numbers from a beta distribution
+    ##'
+    ##' @param n Number of samples to draw (per stream)
+    ##'
+    ##' @param a The first shape parameter
+    ##'
+    ##' @param b The second shape parameter
+    ##'
+    ##' @param n_threads Number of threads to use; see Details
+    beta = function(n, a, b, n_threads = 1L) {
+      mcstate_rng_beta(private$ptr, n, a, b, n_threads, private$float)
     },
 
     ##' @description

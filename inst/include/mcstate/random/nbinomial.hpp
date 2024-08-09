@@ -34,7 +34,7 @@ real_type nbinomial(rng_state_type& rng_state, real_type size, real_type prob) {
     if (rng_state.deterministic) {
       return (1 - prob) * size / prob;
     }
-    return (prob == 1) ? 0 : poisson(rng_state, gamma(rng_state, size, (1 - prob) / prob));
+    return (prob == 1) ? 0 : poisson(rng_state, gamma_scale(rng_state, size, (1 - prob) / prob));
 }
 
 }

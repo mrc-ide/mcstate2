@@ -323,7 +323,7 @@ test_that("Prevent unknown normal algorithms", {
 test_that("rexp agrees with stats::rexp", {
   n <- 100000
   rate <- 0.04
-  ans <- mcstate_rng$new(2)$exponential(n, rate)
+  ans <- mcstate_rng$new(2)$exponential_rate(n, rate)
   expect_equal(mean(ans), 1 / rate, tolerance = 1e-2)
   expect_equal(var(ans), 1 / rate^2, tolerance = 1e-2)
   expect_gt(ks.test(ans, "pexp", rate)$p.value, 0.1)
@@ -658,7 +658,7 @@ test_that("std uniform random numbers from floats have correct distribution", {
 test_that("exponential random numbers from floats have correct distribution", {
   n <- 100000
   rate <- 4
-  yf <- mcstate_rng$new(1, real_type = "float")$exponential(n, rate)
+  yf <- mcstate_rng$new(1, real_type = "float")$exponential_rate(n, rate)
   expect_equal(mean(yf), 1 / rate, tolerance = 1e-2)
   expect_equal(var(yf), 1 / rate^2, tolerance = 5e-2)
   expect_gt(suppressWarnings(ks.test(yf, "pexp", rate)$p.value), 0.1)
@@ -956,8 +956,8 @@ test_that("deterministic rexp returns mean", {
   rng_d <- mcstate_rng$new(1, real_type = "double", deterministic = TRUE)
   state_f <- rng_f$state()
   state_d <- rng_d$state()
-  expect_equal(rng_f$exponential(m, rate), 1 / rate, tolerance = 1e-6)
-  expect_equal(rng_d$exponential(m, rate), 1 / rate)
+  expect_equal(rng_f$exponential_rate(m, rate), 1 / rate, tolerance = 1e-6)
+  expect_equal(rng_d$exponential_rate(m, rate), 1 / rate)
   expect_equal(rng_f$state(), state_f)
   expect_equal(rng_d$state(), state_d)
 })
@@ -1264,10 +1264,20 @@ test_that("gamma for a = 1 is the same as exponential", {
   n <- 10
   b <- 3
 
-  gamma <- rng1$gamma(n, 1, b)
-  exp <- rng2$exponential(n, 1 / b)
+  gamma <- rng1$gamma_scale(n, 1, b)
+  exp <- rng2$exponential_rate(n, 1 / b)
 
   expect_equal(gamma, exp)
+})
+
+
+test_that("gamma_rate follows from gamma_scale", {
+  rng1 <- mcstate_rng$new(seed = 1L)
+  rng2 <- mcstate_rng$new(seed = 1L)
+  b <- 3
+  expect_identical(
+    rng1$gamma_rate(100, 5, 1 / b),
+    rng2$gamma_scale(100, 5, b))
 })
 
 
@@ -1277,28 +1287,28 @@ test_that("can draw gamma random numbers", {
   b <- 3
   n <- 10000000
 
-  ans1 <- mcstate_rng$new(1)$gamma(n, a, b)
-  ans2 <- mcstate_rng$new(1)$gamma(n, a, b)
+  ans1 <- mcstate_rng$new(1)$gamma_scale(n, a, b)
+  ans2 <- mcstate_rng$new(1)$gamma_scale(n, a, b)
   expect_identical(ans1, ans2)
 
   expect_equal(mean(ans1), a * b, tolerance = 1e-3)
   expect_equal(var(ans1), a * b^2, tolerance = 1e-3)
 
-  ans_f <- mcstate_rng$new(1, real_type = "float")$gamma(n, a, b)
+  ans_f <- mcstate_rng$new(1, real_type = "float")$gamma_scale(n, a, b)
   expect_equal(mean(ans_f), a * b, tolerance = 1e-3)
   expect_equal(var(ans_f), a * b^2, tolerance = 1e-3)
 
   ## when a < 1
   a <- 0.5
 
-  ans3 <- mcstate_rng$new(1)$gamma(n, a, b)
-  ans4 <- mcstate_rng$new(1)$gamma(n, a, b)
+  ans3 <- mcstate_rng$new(1)$gamma_scale(n, a, b)
+  ans4 <- mcstate_rng$new(1)$gamma_scale(n, a, b)
   expect_identical(ans3, ans4)
 
   expect_equal(mean(ans3), a * b, tolerance = 1e-3)
   expect_equal(var(ans3), a * b^2, tolerance = 1e-3)
 
-  ans_f <- mcstate_rng$new(1, real_type = "float")$gamma(n, a, b)
+  ans_f <- mcstate_rng$new(1, real_type = "float")$gamma_scale(n, a, b)
   expect_equal(mean(ans_f), a * b, tolerance = 1e-3)
   expect_equal(var(ans_f), a * b^2, tolerance = 1e-3)
 })
@@ -1314,9 +1324,9 @@ test_that("deterministic gamma returns mean", {
   state_f <- rng_f$state()
   state_d <- rng_d$state()
 
-  expect_equal(rng_f$gamma(n_reps, a, b), a * b,
+  expect_equal(rng_f$gamma_scale(n_reps, a, b), a * b,
                tolerance = 1e-6)
-  expect_equal(rng_d$gamma(n_reps, a, b), a * b)
+  expect_equal(rng_d$gamma_scale(n_reps, a, b), a * b)
 
   expect_equal(rng_f$state(), state_f)
   expect_equal(rng_d$state(), state_d)
@@ -1325,14 +1335,14 @@ test_that("deterministic gamma returns mean", {
 
 test_that("gamma random numbers prevent bad inputs", {
   r <- mcstate_rng$new(1)
-  expect_equal(r$gamma(1, 0, 0), 0)
-  expect_equal(r$gamma(1, Inf, Inf), Inf)
+  expect_equal(r$gamma_scale(1, 0, 0), 0)
+  expect_equal(r$gamma_scale(1, Inf, Inf), Inf)
 
   expect_error(
-    r$gamma(1, -1.1, 5.1),
+    r$gamma_scale(1, -1.1, 5.1),
     "Invalid call to gamma with shape = -1.1, scale = 5.1")
   expect_error(
-    r$gamma(1, 5.1, -1.1),
+    r$gamma_scale(1, 5.1, -1.1),
     "Invalid call to gamma with shape = 5.1, scale = -1.1")
 })
 
@@ -1423,4 +1433,48 @@ test_that("can fetch rng state", {
   expect_false(is.null(get_r_rng_state()))
   rm(list = ".Random.seed", envir = .GlobalEnv)
   expect_true(is.null(get_r_rng_state()))
+})
+
+
+test_that("exponential by mean agrees with rate", {
+  ans1 <- mcstate_rng$new(1)$exponential_rate(100, 0.5)
+  ans2 <- mcstate_rng$new(1)$exponential_mean(100, 2)
+  expect_equal(ans1, ans2)
+})
+
+
+test_that("can sample from the beta distribution", {
+  rng <- mcstate_rng$new(1, seed = 42)
+  a <- 2.5
+  b <- 1.5
+  r <- rng$beta(1000000, a, b)
+  expect_equal(mean(r), a / (a + b), tolerance = 1e-3)
+  expect_equal(var(r), a * b / ((a + b)^2 * (a + b + 1)), tolerance = 1e-2)
+})
+
+
+test_that("beta generation algorithm is correct", {
+  rng1 <- mcstate_rng$new(1, seed = 42)
+  rng2 <- mcstate_rng$new(1, seed = 42)
+  a <- 2.5
+  b <- 1.5
+  r <- rng1$beta(1, a, b)
+
+  x <- rng2$gamma_scale(1, a, 1)
+  y <- rng2$gamma_scale(1, b, 1)
+  expect_equal(r, x / (x + y))
+})
+
+
+test_that("deterministic beta returns mean", {
+  n <- 10
+  a <- rexp(n)
+  b <- rexp(n)
+
+  rng <- mcstate_rng$new(1, deterministic = TRUE)
+  state <- rng$state()
+
+  expect_equal(rng$beta(n, a, b), a / (a + b))
+
+  expect_equal(rng$state(), state)
 })

@@ -8,7 +8,7 @@ ex_simple_gamma1 <- function(shape = 1, rate = 1) {
       list(
         parameters = "gamma",
         direct_sample = function(rng) {
-          rng$gamma(1, shape = shape, scale = 1 / rate)
+          rng$gamma_scale(1, shape = shape, scale = 1 / rate)
         },
         density = function(x) {
           drop(dgamma(x, shape = shape, rate = rate, log = TRUE))
@@ -134,8 +134,8 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
   }
 
   direct_sample <- function(rng) {
-    c(rng$gamma(1, prior_beta_shape, 1 / prior_beta_rate),
-      rng$gamma(1, prior_gamma_shape, 1 / prior_gamma_rate))
+    c(rng$gamma_scale(1, prior_beta_shape, 1 / prior_beta_rate),
+      rng$gamma_scale(1, prior_gamma_shape, 1 / prior_gamma_rate))
   }
 
   set_rng_state <- function(rng_state) {

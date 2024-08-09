@@ -50,10 +50,17 @@ extern "C" SEXP _mcstate2_mcstate_rng_uniform(SEXP ptr, SEXP n, SEXP r_min, SEXP
   END_CPP11
 }
 // random.cpp
-cpp11::sexp mcstate_rng_exponential(SEXP ptr, int n, cpp11::doubles r_rate, int n_threads, bool is_float);
-extern "C" SEXP _mcstate2_mcstate_rng_exponential(SEXP ptr, SEXP n, SEXP r_rate, SEXP n_threads, SEXP is_float) {
+cpp11::sexp mcstate_rng_exponential_rate(SEXP ptr, int n, cpp11::doubles r_rate, int n_threads, bool is_float);
+extern "C" SEXP _mcstate2_mcstate_rng_exponential_rate(SEXP ptr, SEXP n, SEXP r_rate, SEXP n_threads, SEXP is_float) {
   BEGIN_CPP11
-    return cpp11::as_sexp(mcstate_rng_exponential(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_rate), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
+    return cpp11::as_sexp(mcstate_rng_exponential_rate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_rate), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
+  END_CPP11
+}
+// random.cpp
+cpp11::sexp mcstate_rng_exponential_mean(SEXP ptr, int n, cpp11::doubles r_mean, int n_threads, bool is_float);
+extern "C" SEXP _mcstate2_mcstate_rng_exponential_mean(SEXP ptr, SEXP n, SEXP r_mean, SEXP n_threads, SEXP is_float) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(mcstate_rng_exponential_mean(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_mean), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
   END_CPP11
 }
 // random.cpp
@@ -85,10 +92,17 @@ extern "C" SEXP _mcstate2_mcstate_rng_hypergeometric(SEXP ptr, SEXP n, SEXP r_n1
   END_CPP11
 }
 // random.cpp
-cpp11::sexp mcstate_rng_gamma(SEXP ptr, int n, cpp11::doubles r_a, cpp11::doubles r_b, int n_threads, bool is_float);
-extern "C" SEXP _mcstate2_mcstate_rng_gamma(SEXP ptr, SEXP n, SEXP r_a, SEXP r_b, SEXP n_threads, SEXP is_float) {
+cpp11::sexp mcstate_rng_gamma_scale(SEXP ptr, int n, cpp11::doubles r_shape, cpp11::doubles r_scale, int n_threads, bool is_float);
+extern "C" SEXP _mcstate2_mcstate_rng_gamma_scale(SEXP ptr, SEXP n, SEXP r_shape, SEXP r_scale, SEXP n_threads, SEXP is_float) {
   BEGIN_CPP11
-    return cpp11::as_sexp(mcstate_rng_gamma(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_a), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_b), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
+    return cpp11::as_sexp(mcstate_rng_gamma_scale(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_shape), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_scale), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
+  END_CPP11
+}
+// random.cpp
+cpp11::sexp mcstate_rng_gamma_rate(SEXP ptr, int n, cpp11::doubles r_shape, cpp11::doubles r_rate, int n_threads, bool is_float);
+extern "C" SEXP _mcstate2_mcstate_rng_gamma_rate(SEXP ptr, SEXP n, SEXP r_shape, SEXP r_rate, SEXP n_threads, SEXP is_float) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(mcstate_rng_gamma_rate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_shape), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_rate), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
   END_CPP11
 }
 // random.cpp
@@ -103,6 +117,13 @@ cpp11::sexp mcstate_rng_cauchy(SEXP ptr, int n, cpp11::doubles r_location, cpp11
 extern "C" SEXP _mcstate2_mcstate_rng_cauchy(SEXP ptr, SEXP n, SEXP r_location, SEXP r_scale, SEXP n_threads, SEXP is_float) {
   BEGIN_CPP11
     return cpp11::as_sexp(mcstate_rng_cauchy(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_location), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_scale), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
+  END_CPP11
+}
+// random.cpp
+cpp11::sexp mcstate_rng_beta(SEXP ptr, int n, cpp11::doubles r_a, cpp11::doubles r_b, int n_threads, bool is_float);
+extern "C" SEXP _mcstate2_mcstate_rng_beta(SEXP ptr, SEXP n, SEXP r_a, SEXP r_b, SEXP n_threads, SEXP is_float) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(mcstate_rng_beta(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_a), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_b), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<bool>>(is_float)));
   END_CPP11
 }
 // random.cpp
@@ -151,26 +172,29 @@ extern "C" SEXP _mcstate2_test_xoshiro_run(SEXP obj) {
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_mcstate2_mcstate_rng_alloc",          (DL_FUNC) &_mcstate2_mcstate_rng_alloc,          4},
-    {"_mcstate2_mcstate_rng_binomial",       (DL_FUNC) &_mcstate2_mcstate_rng_binomial,       6},
-    {"_mcstate2_mcstate_rng_cauchy",         (DL_FUNC) &_mcstate2_mcstate_rng_cauchy,         6},
-    {"_mcstate2_mcstate_rng_exponential",    (DL_FUNC) &_mcstate2_mcstate_rng_exponential,    5},
-    {"_mcstate2_mcstate_rng_gamma",          (DL_FUNC) &_mcstate2_mcstate_rng_gamma,          6},
-    {"_mcstate2_mcstate_rng_hypergeometric", (DL_FUNC) &_mcstate2_mcstate_rng_hypergeometric, 7},
-    {"_mcstate2_mcstate_rng_jump",           (DL_FUNC) &_mcstate2_mcstate_rng_jump,           2},
-    {"_mcstate2_mcstate_rng_long_jump",      (DL_FUNC) &_mcstate2_mcstate_rng_long_jump,      2},
-    {"_mcstate2_mcstate_rng_multinomial",    (DL_FUNC) &_mcstate2_mcstate_rng_multinomial,    6},
-    {"_mcstate2_mcstate_rng_nbinomial",      (DL_FUNC) &_mcstate2_mcstate_rng_nbinomial,      6},
-    {"_mcstate2_mcstate_rng_normal",         (DL_FUNC) &_mcstate2_mcstate_rng_normal,         7},
-    {"_mcstate2_mcstate_rng_pointer_init",   (DL_FUNC) &_mcstate2_mcstate_rng_pointer_init,   4},
-    {"_mcstate2_mcstate_rng_pointer_sync",   (DL_FUNC) &_mcstate2_mcstate_rng_pointer_sync,   2},
-    {"_mcstate2_mcstate_rng_poisson",        (DL_FUNC) &_mcstate2_mcstate_rng_poisson,        5},
-    {"_mcstate2_mcstate_rng_random_normal",  (DL_FUNC) &_mcstate2_mcstate_rng_random_normal,  5},
-    {"_mcstate2_mcstate_rng_random_real",    (DL_FUNC) &_mcstate2_mcstate_rng_random_real,    4},
-    {"_mcstate2_mcstate_rng_state",          (DL_FUNC) &_mcstate2_mcstate_rng_state,          2},
-    {"_mcstate2_mcstate_rng_uniform",        (DL_FUNC) &_mcstate2_mcstate_rng_uniform,        6},
-    {"_mcstate2_test_rng_pointer_get",       (DL_FUNC) &_mcstate2_test_rng_pointer_get,       2},
-    {"_mcstate2_test_xoshiro_run",           (DL_FUNC) &_mcstate2_test_xoshiro_run,           1},
+    {"_mcstate2_mcstate_rng_alloc",            (DL_FUNC) &_mcstate2_mcstate_rng_alloc,            4},
+    {"_mcstate2_mcstate_rng_beta",             (DL_FUNC) &_mcstate2_mcstate_rng_beta,             6},
+    {"_mcstate2_mcstate_rng_binomial",         (DL_FUNC) &_mcstate2_mcstate_rng_binomial,         6},
+    {"_mcstate2_mcstate_rng_cauchy",           (DL_FUNC) &_mcstate2_mcstate_rng_cauchy,           6},
+    {"_mcstate2_mcstate_rng_exponential_mean", (DL_FUNC) &_mcstate2_mcstate_rng_exponential_mean, 5},
+    {"_mcstate2_mcstate_rng_exponential_rate", (DL_FUNC) &_mcstate2_mcstate_rng_exponential_rate, 5},
+    {"_mcstate2_mcstate_rng_gamma_rate",       (DL_FUNC) &_mcstate2_mcstate_rng_gamma_rate,       6},
+    {"_mcstate2_mcstate_rng_gamma_scale",      (DL_FUNC) &_mcstate2_mcstate_rng_gamma_scale,      6},
+    {"_mcstate2_mcstate_rng_hypergeometric",   (DL_FUNC) &_mcstate2_mcstate_rng_hypergeometric,   7},
+    {"_mcstate2_mcstate_rng_jump",             (DL_FUNC) &_mcstate2_mcstate_rng_jump,             2},
+    {"_mcstate2_mcstate_rng_long_jump",        (DL_FUNC) &_mcstate2_mcstate_rng_long_jump,        2},
+    {"_mcstate2_mcstate_rng_multinomial",      (DL_FUNC) &_mcstate2_mcstate_rng_multinomial,      6},
+    {"_mcstate2_mcstate_rng_nbinomial",        (DL_FUNC) &_mcstate2_mcstate_rng_nbinomial,        6},
+    {"_mcstate2_mcstate_rng_normal",           (DL_FUNC) &_mcstate2_mcstate_rng_normal,           7},
+    {"_mcstate2_mcstate_rng_pointer_init",     (DL_FUNC) &_mcstate2_mcstate_rng_pointer_init,     4},
+    {"_mcstate2_mcstate_rng_pointer_sync",     (DL_FUNC) &_mcstate2_mcstate_rng_pointer_sync,     2},
+    {"_mcstate2_mcstate_rng_poisson",          (DL_FUNC) &_mcstate2_mcstate_rng_poisson,          5},
+    {"_mcstate2_mcstate_rng_random_normal",    (DL_FUNC) &_mcstate2_mcstate_rng_random_normal,    5},
+    {"_mcstate2_mcstate_rng_random_real",      (DL_FUNC) &_mcstate2_mcstate_rng_random_real,      4},
+    {"_mcstate2_mcstate_rng_state",            (DL_FUNC) &_mcstate2_mcstate_rng_state,            2},
+    {"_mcstate2_mcstate_rng_uniform",          (DL_FUNC) &_mcstate2_mcstate_rng_uniform,          6},
+    {"_mcstate2_test_rng_pointer_get",         (DL_FUNC) &_mcstate2_test_rng_pointer_get,         2},
+    {"_mcstate2_test_xoshiro_run",             (DL_FUNC) &_mcstate2_test_xoshiro_run,             1},
     {NULL, NULL, 0}
 };
 }

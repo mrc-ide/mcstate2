@@ -44,51 +44,60 @@ distribution <- function(name, density, domain, cpp, expr,
        cpp = cpp)
 }
 
+distr_beta <- distribution(
+  name = "Beta",
+  density = function(x, a, b) dbeta(x, a, b, log = TRUE),
+  domain = c(0, 1),
+  sample = function(rng, a, b) rng$beta(1, a, b),
+  expr = list(
+    density = quote((a - 1) * log(x) + (b - 1) * log(1 - x) - lbeta(a, b)),
+    mean = quote(a / (a + b))),
+  cpp = list(density = "beta", sample = "beta"))
 
 distr_binomial <- distribution(
   name = "Binomial",
   density = function(x, size, prob) dbinom(x, size, prob, log = TRUE),
-  domain = c(0, Inf),
+  domain = c(0, Inf), # size?
   sample = function(rng, size, prob) rng$binomial(1, size, prob),
   expr = list(
     density = quote(lchoose(size, x) + x * log(prob) +
                     (size - x) * log(1 - prob)),
     mean = quote(size * prob)),
-  cpp = list(density = NULL, sample = "binomial"))
+  cpp = list(density = "binomial", sample = "binomial"))
 
 distr_exponential_rate <- distribution(
   name = "Exponential",
   variant = "rate",
   density = function(x, rate) dexp(x, rate, log = TRUE),
   domain = c(0, Inf),
-  sample = function(rng, rate) rng$exponential(1, rate),
+  sample = function(rng, rate) rng$exponential_rate(1, rate),
   expr = list(
     density = quote(log(rate) - rate * x),
     mean = quote(1 / rate)),
-  cpp = list(density = NULL, sample = "exponential"))
+  cpp = list(density = "exponential_rate", sample = "exponential_rate"))
 
 distr_exponential_mean <- distribution(
   name = "Exponential",
   variant = "mean",
   density = function(x, mean) dexp(x, 1 / mean, log = TRUE),
   domain = c(0, Inf),
-  sample = function(rng, mean) rng$exponential(1, 1 / mean),
+  sample = function(rng, mean) rng$exponential_mean(1, mean),
   expr = list(
     density = quote(-log(mean) - x / mean),
     mean = quote(mean)),
-  cpp = list(density = NULL, sample = NULL))
+  cpp = list(density = "exponential_mean", sample = "exponential_mean"))
 
 distr_gamma_rate <- distribution(
   name = "Gamma",
   variant = "rate",
   density = function(x, shape, rate) dgamma(x, shape, rate = rate, log = TRUE),
   domain = c(0, Inf),
-  sample = function(rng, shape, rate) rng$gamma(1, shape, 1 / rate),
+  sample = function(rng, shape, rate) rng$gamma_rate(1, shape, rate),
   expr = list(
     density = quote((shape - 1) * log(x) - rate * x -
                     lgamma(shape) + shape * log(rate)),
     mean = quote(shape / rate)),
-  cpp = list(density = NULL, sample = NULL))
+  cpp = list(density = "gamma_rate", sample = "gamma_rate"))
 
 distr_gamma_scale <- distribution(
   name = "Gamma",
@@ -97,12 +106,22 @@ distr_gamma_scale <- distribution(
     dgamma(x, shape, scale = scale, log = TRUE)
   },
   domain = c(0, Inf),
-  sample = function(rng, shape, scale) rng$gamma(1, shape, scale),
+  sample = function(rng, shape, scale) rng$gamma_scale(1, shape, scale),
   expr = list(
     density = quote((shape - 1) * log(x) - x / scale -
                     lgamma(shape) - shape * log(scale)),
     mean = quote(shape * scale)),
-  cpp = list(density = NULL, sample = NULL))
+  cpp = list(density = "gamma_scale", sample = "gamma_scale"))
+
+distr_hypergeometric <- distribution(
+  name = "Hypergeometric",
+  density = function(x, m, n, k) dhyper(x, n1, n2, k, log = TRUE),
+  domain = c(0, Inf), # the true version here is quite complex
+  sample = function(rng, n1, n2, k) rng$hypergeometric(1, n1, n2, k),
+  expr = list(
+    density = quote(lchoose(n1, x) + lchoose(n2, k - x) - lchoose(n1 + n2, k)),
+    mean = quote(k * n1 / (n1 + n2))),
+  cpp = list(density = "hypergeometric", sample = "hypergeometric"))
 
 distr_normal <- distribution(
   name = "Normal",
@@ -129,20 +148,22 @@ distr_uniform <- distribution(
   density = function(x, min, max) dunif(x, min, max, log = TRUE),
   sample = function(rng, min, max) rng$uniform(1, min, max),
   expr = list(
-    density = quote(if (x < min || x > max) -Inf else -log(b - a)),
-    mean = quote((b - a) / 2)),
+    density = quote(if (x < min || x > max) -Inf else -log(max - min)),
+    mean = quote((max - min) / 2)),
   domain = function(min, max) {
     c(if (is.na(min)) -Inf else min, if (is.na(max)) Inf else max)
   },
-  cpp = list(density = NULL, sample = "uniform"))
+  cpp = list(density = "uniform", sample = "uniform"))
 
 dsl_distributions <- local({
   d <- list(
+    distr_beta,
     distr_binomial,
     distr_exponential_rate, # preferred form, listed first
     distr_exponential_mean,
     distr_gamma_rate,
     distr_gamma_scale,
+    distr_hypergeometric,
     distr_normal,
     distr_poisson,
     distr_uniform)

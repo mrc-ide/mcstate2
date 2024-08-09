@@ -24,8 +24,12 @@ mcstate_rng_uniform <- function(ptr, n, r_min, r_max, n_threads, is_float) {
   .Call(`_mcstate2_mcstate_rng_uniform`, ptr, n, r_min, r_max, n_threads, is_float)
 }
 
-mcstate_rng_exponential <- function(ptr, n, r_rate, n_threads, is_float) {
-  .Call(`_mcstate2_mcstate_rng_exponential`, ptr, n, r_rate, n_threads, is_float)
+mcstate_rng_exponential_rate <- function(ptr, n, r_rate, n_threads, is_float) {
+  .Call(`_mcstate2_mcstate_rng_exponential_rate`, ptr, n, r_rate, n_threads, is_float)
+}
+
+mcstate_rng_exponential_mean <- function(ptr, n, r_mean, n_threads, is_float) {
+  .Call(`_mcstate2_mcstate_rng_exponential_mean`, ptr, n, r_mean, n_threads, is_float)
 }
 
 mcstate_rng_normal <- function(ptr, n, r_mean, r_sd, n_threads, algorithm, is_float) {
@@ -44,8 +48,12 @@ mcstate_rng_hypergeometric <- function(ptr, n, r_n1, r_n2, r_k, n_threads, is_fl
   .Call(`_mcstate2_mcstate_rng_hypergeometric`, ptr, n, r_n1, r_n2, r_k, n_threads, is_float)
 }
 
-mcstate_rng_gamma <- function(ptr, n, r_a, r_b, n_threads, is_float) {
-  .Call(`_mcstate2_mcstate_rng_gamma`, ptr, n, r_a, r_b, n_threads, is_float)
+mcstate_rng_gamma_scale <- function(ptr, n, r_shape, r_scale, n_threads, is_float) {
+  .Call(`_mcstate2_mcstate_rng_gamma_scale`, ptr, n, r_shape, r_scale, n_threads, is_float)
+}
+
+mcstate_rng_gamma_rate <- function(ptr, n, r_shape, r_rate, n_threads, is_float) {
+  .Call(`_mcstate2_mcstate_rng_gamma_rate`, ptr, n, r_shape, r_rate, n_threads, is_float)
 }
 
 mcstate_rng_poisson <- function(ptr, n, r_lambda, n_threads, is_float) {
@@ -54,6 +62,10 @@ mcstate_rng_poisson <- function(ptr, n, r_lambda, n_threads, is_float) {
 
 mcstate_rng_cauchy <- function(ptr, n, r_location, r_scale, n_threads, is_float) {
   .Call(`_mcstate2_mcstate_rng_cauchy`, ptr, n, r_location, r_scale, n_threads, is_float)
+}
+
+mcstate_rng_beta <- function(ptr, n, r_a, r_b, n_threads, is_float) {
+  .Call(`_mcstate2_mcstate_rng_beta`, ptr, n, r_a, r_b, n_threads, is_float)
 }
 
 mcstate_rng_multinomial <- function(ptr, n, r_size, r_prob, n_threads, is_float) {

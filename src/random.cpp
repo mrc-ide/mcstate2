@@ -208,8 +208,8 @@ cpp11::sexp mcstate_rng_uniform(SEXP ptr, int n,
 }
 
 template <typename real_type, typename T>
-cpp11::sexp mcstate_rng_exponential(SEXP ptr, int n, cpp11::doubles r_rate,
-                                 int n_threads) {
+cpp11::sexp mcstate_rng_exponential_rate(SEXP ptr, int n, cpp11::doubles r_rate,
+                                         int n_threads) {
   T *rng = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const int n_streams = rng->size();
   cpp11::writable::doubles ret = cpp11::writable::doubles(n * n_streams);
@@ -227,13 +227,40 @@ cpp11::sexp mcstate_rng_exponential(SEXP ptr, int n, cpp11::doubles r_rate,
     auto rate_i = rate_vary.generator ? rate + rate_vary.offset * i : rate;
     for (size_t j = 0; j < (size_t)n; ++j) {
       auto rate_ij = rate_vary.draw ? rate_i[j] : rate_i[0];
-      y_i[j] = mcstate::random::exponential<real_type>(state, rate_ij);
+      y_i[j] = mcstate::random::exponential_rate<real_type>(state, rate_ij);
     }
   }
 
   return sexp_matrix(ret, n, n_streams);
 }
 
+
+template <typename real_type, typename T>
+cpp11::sexp mcstate_rng_exponential_mean(SEXP ptr, int n, cpp11::doubles r_mean,
+                                         int n_threads) {
+  T *rng = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const int n_streams = rng->size();
+  cpp11::writable::doubles ret = cpp11::writable::doubles(n * n_streams);
+  double * y = REAL(ret);
+
+  const double * mean = REAL(r_mean);
+  auto mean_vary = check_input_type(r_mean, n, n_streams, "mean");
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads)
+#endif
+  for (int i = 0; i < n_streams; ++i) {
+    auto &state = rng->state(i);
+    auto y_i = y + n * i;
+    auto mean_i = mean_vary.generator ? mean + mean_vary.offset * i : mean;
+    for (size_t j = 0; j < (size_t)n; ++j) {
+      auto mean_ij = mean_vary.draw ? mean_i[j] : mean_i[0];
+      y_i[j] = mcstate::random::exponential_mean<real_type>(state, mean_ij);
+    }
+  }
+
+  return sexp_matrix(ret, n, n_streams);
+}
 
 template <typename real_type, mcstate::random::algorithm::normal A, typename T>
 cpp11::sexp mcstate_rng_normal(SEXP ptr, int n,
@@ -484,8 +511,10 @@ cpp11::sexp mcstate_rng_hypergeometric(SEXP ptr, int n,
 
 
 template <typename real_type, typename T>
-cpp11::sexp mcstate_rng_gamma(SEXP ptr, int n,
-                           cpp11::doubles r_shape, cpp11::doubles r_scale, int n_threads) {
+cpp11::sexp mcstate_rng_gamma_scale(SEXP ptr, int n,
+                                    cpp11::doubles r_shape,
+                                    cpp11::doubles r_scale,
+                                    int n_threads) {
   T *rng = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const int n_streams = rng->size();
   cpp11::writable::doubles ret = cpp11::writable::doubles(n * n_streams);
@@ -510,7 +539,48 @@ cpp11::sexp mcstate_rng_gamma(SEXP ptr, int n,
       for (size_t j = 0; j < (size_t)n; ++j) {
         auto shape_ij = shape_vary.draw ? shape_i[j] : shape_i[0];
         auto scale_ij = scale_vary.draw ? scale_i[j] : scale_i[0];
-        y_i[j] = mcstate::random::gamma<real_type>(state, shape_ij, scale_ij);
+        y_i[j] = mcstate::random::gamma_scale<real_type>(state, shape_ij, scale_ij);
+      }
+    } catch (std::exception const& e) {
+      errors.capture(e, i);
+    }
+  }
+
+  errors.report("generators", 4, true);
+
+  return sexp_matrix(ret, n, n_streams);
+}
+
+template <typename real_type, typename T>
+cpp11::sexp mcstate_rng_gamma_rate(SEXP ptr, int n,
+                                    cpp11::doubles r_shape,
+                                    cpp11::doubles r_rate,
+                                    int n_threads) {
+  T *rng = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const int n_streams = rng->size();
+  cpp11::writable::doubles ret = cpp11::writable::doubles(n * n_streams);
+  double * y = REAL(ret);
+
+  const double * shape = REAL(r_shape);
+  const double * rate = REAL(r_rate);
+  auto shape_vary = check_input_type(r_shape, n, n_streams, "shape");
+  auto rate_vary = check_input_type(r_rate, n, n_streams, "rate");
+
+  mcstate::utils::openmp_errors errors(n_streams);
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads)
+#endif
+  for (int i = 0; i < n_streams; ++i) {
+    try {
+      auto &state = rng->state(i);
+      auto y_i = y + n * i;
+      auto shape_i = shape_vary.generator ? shape + shape_vary.offset * i : shape;
+      auto rate_i = rate_vary.generator ? rate + rate_vary.offset * i : rate;
+      for (size_t j = 0; j < (size_t)n; ++j) {
+        auto shape_ij = shape_vary.draw ? shape_i[j] : shape_i[0];
+        auto rate_ij = rate_vary.draw ? rate_i[j] : rate_i[0];
+        y_i[j] = mcstate::random::gamma_rate<real_type>(state, shape_ij, rate_ij);
       }
     } catch (std::exception const& e) {
       errors.capture(e, i);
@@ -556,6 +626,47 @@ cpp11::sexp mcstate_rng_cauchy(SEXP ptr, int n,
         auto location_ij = location_vary.draw ? location_i[j] : location_i[0];
         auto scale_ij = scale_vary.draw ? scale_i[j] : scale_i[0];
         y_i[j] = mcstate::random::cauchy<real_type>(state, location_ij, scale_ij);
+      }
+    } catch (std::exception const& e) {
+      errors.capture(e, i);
+    }
+  }
+
+  errors.report("generators", 4, true);
+
+  return sexp_matrix(ret, n, n_streams);
+}
+
+template <typename real_type, typename T>
+cpp11::sexp mcstate_rng_beta(SEXP ptr, int n,
+			     cpp11::doubles r_a,
+			     cpp11::doubles r_b,
+			     int n_threads) {
+  T *rng = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const int n_streams = rng->size();
+  cpp11::writable::doubles ret = cpp11::writable::doubles(n * n_streams);
+  double * y = REAL(ret);
+
+  const double * a = REAL(r_a);
+  const double * b = REAL(r_b);
+  auto a_vary = check_input_type(r_a, n, n_streams, "a");
+  auto b_vary = check_input_type(r_b, n, n_streams, "b");
+
+  mcstate::utils::openmp_errors errors(n_streams);
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads)
+#endif
+  for (int i = 0; i < n_streams; ++i) {
+    try {
+      auto &state = rng->state(i);
+      auto y_i = y + n * i;
+      auto a_i = a_vary.generator ? a + a_vary.offset * i : a;
+      auto b_i = b_vary.generator ? b + b_vary.offset * i : b;
+      for (size_t j = 0; j < (size_t)n; ++j) {
+        auto a_ij = a_vary.draw ? a_i[j] : a_i[0];
+        auto b_ij = b_vary.draw ? b_i[j] : b_i[0];
+        y_i[j] = mcstate::random::beta<real_type>(state, a_ij, b_ij);
       }
     } catch (std::exception const& e) {
       errors.capture(e, i);
@@ -648,12 +759,21 @@ cpp11::sexp mcstate_rng_uniform(SEXP ptr, int n,
 }
 
 [[cpp11::register]]
-cpp11::sexp mcstate_rng_exponential(SEXP ptr, int n, cpp11::doubles r_rate,
-                                 int n_threads,
-                                 bool is_float) {
+cpp11::sexp mcstate_rng_exponential_rate(SEXP ptr, int n, cpp11::doubles r_rate,
+                                         int n_threads,
+                                         bool is_float) {
   return is_float ?
-    mcstate_rng_exponential<float, default_rng32>(ptr, n, r_rate, n_threads) :
-    mcstate_rng_exponential<double, default_rng64>(ptr, n, r_rate, n_threads);
+    mcstate_rng_exponential_rate<float, default_rng32>(ptr, n, r_rate, n_threads) :
+    mcstate_rng_exponential_rate<double, default_rng64>(ptr, n, r_rate, n_threads);
+}
+
+[[cpp11::register]]
+cpp11::sexp mcstate_rng_exponential_mean(SEXP ptr, int n, cpp11::doubles r_mean,
+                                         int n_threads,
+                                         bool is_float) {
+  return is_float ?
+    mcstate_rng_exponential_mean<float, default_rng32>(ptr, n, r_mean, n_threads) :
+    mcstate_rng_exponential_mean<double, default_rng64>(ptr, n, r_mean, n_threads);
 }
 
 [[cpp11::register]]
@@ -712,14 +832,24 @@ cpp11::sexp mcstate_rng_hypergeometric(SEXP ptr, int n,
 }
 
 [[cpp11::register]]
-cpp11::sexp mcstate_rng_gamma(SEXP ptr, int n,
-                           cpp11::doubles r_a, cpp11::doubles r_b,
-                           int n_threads, bool is_float) {
+cpp11::sexp mcstate_rng_gamma_scale(SEXP ptr, int n,
+                                    cpp11::doubles r_shape,
+                                    cpp11::doubles r_scale,
+                                    int n_threads, bool is_float) {
   return is_float ?
-    mcstate_rng_gamma<float, default_rng32>(ptr, n, r_a, r_b, n_threads) :
-    mcstate_rng_gamma<double, default_rng64>(ptr, n, r_a, r_b, n_threads);
+    mcstate_rng_gamma_scale<float, default_rng32>(ptr, n, r_shape, r_scale, n_threads) :
+    mcstate_rng_gamma_scale<double, default_rng64>(ptr, n, r_shape, r_scale, n_threads);
 }
 
+[[cpp11::register]]
+cpp11::sexp mcstate_rng_gamma_rate(SEXP ptr, int n,
+                                    cpp11::doubles r_shape,
+                                    cpp11::doubles r_rate,
+                                    int n_threads, bool is_float) {
+  return is_float ?
+    mcstate_rng_gamma_rate<float, default_rng32>(ptr, n, r_shape, r_rate, n_threads) :
+    mcstate_rng_gamma_rate<double, default_rng64>(ptr, n, r_shape, r_rate, n_threads);
+}
 
 [[cpp11::register]]
 cpp11::sexp mcstate_rng_poisson(SEXP ptr, int n,
@@ -739,6 +869,16 @@ cpp11::sexp mcstate_rng_cauchy(SEXP ptr, int n,
   return is_float ?
     mcstate_rng_cauchy<float, default_rng32>(ptr, n, r_location, r_scale, n_threads) :
     mcstate_rng_cauchy<double, default_rng64>(ptr, n, r_location, r_scale, n_threads);
+}
+
+[[cpp11::register]]
+cpp11::sexp mcstate_rng_beta(SEXP ptr, int n,
+			     cpp11::doubles r_a,
+			     cpp11::doubles r_b,
+			     int n_threads, bool is_float) {
+  return is_float ?
+    mcstate_rng_beta<float, default_rng32>(ptr, n, r_a, r_b, n_threads) :
+    mcstate_rng_beta<double, default_rng64>(ptr, n, r_a, r_b, n_threads);
 }
 
 [[cpp11::register]]
