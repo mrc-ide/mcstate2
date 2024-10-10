@@ -4,7 +4,12 @@
 \alias{monty_sampler_nested_random_walk}
 \title{Nested Random Walk Sampler}
 \usage{
-monty_sampler_nested_random_walk(vcv, boundaries = "reflect")
+monty_sampler_nested_random_walk(
+  vcv,
+  boundaries = "reflect",
+  rerun_every = Inf,
+  rerun_random = FALSE
+)
 }
 \arguments{
 \item{vcv}{A list of variance covariance matrices.  We expect this
@@ -25,6 +30,22 @@ the domain.
 
 The initial point selected will lie within the domain, as this is
 enforced by \link{monty_sample}.}
+
+\item{rerun_every}{Optional integer giving the frequency at which
+we should rerun the model on the current "accepted" parameters to
+obtain a new density for stochastic models.  The default for this
+(\code{Inf}) will never trigger a rerun, but if you set to 100, then
+every 100 steps we run the model on both the proposed \emph{and} previously
+accepted parameters before doing the comparison.  This may help "unstick"
+chains, at the cost of some bias in the results.}
+
+\item{rerun_random}{Logical, controlling the behaviour of
+rerunning (when \code{rerun_every} is finite). The default value of
+\code{FALSE} will rerun the model at fixed intervals of iterations
+(given by \code{rerun_every}). If \code{TRUE}, then we stochastically
+rerun each step with probability of \code{1 / rerun_every}. This gives
+the same expected number of MCMC steps between reruns but a different
+pattern.}
 }
 \value{
 A \code{monty_sampler} object, which can be used with

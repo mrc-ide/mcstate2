@@ -344,3 +344,19 @@ test_that("can print a sampler object", {
     "<monty_sampler: Random walk (monty_random_walk)>",
     fixed = TRUE, all = FALSE)
 })
+
+
+test_that("Can rerun a stochastic model", {
+  set.seed(1)
+  m <- ex_dust_sir()
+  vcv <- matrix(c(0.0006405, 0.0005628, 0.0005628, 0.0006641), 2, 2)
+  sampler1 <- monty_sampler_random_walk(vcv = vcv, rerun_every = 2)
+  sampler2 <- monty_sampler_random_walk(vcv = vcv, rerun_every = 2, 
+                                        rerun_random = TRUE)
+  res1 <- monty_sample(m, sampler1, 20)
+  res2 <- monty_sample(m, sampler2, 20)
+  
+  expect_gt(sum(diff(res1$density) != 0), sum(diff(res1$pars[1, , 1]) != 0))
+  expect_true(all(diff(res1$density)[seq(1, 20, by = 2)] != 0))
+  expect_gt(sum(diff(res2$density) != 0), sum(diff(res2$pars[1, , 1]) != 0))
+})

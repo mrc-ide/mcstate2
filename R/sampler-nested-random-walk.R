@@ -49,7 +49,9 @@
 ##'   [monty_sample]
 ##'
 ##' @export
-monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
+monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect",
+                                             rerun_every = Inf,
+                                             rerun_random = FALSE) {
   if (!is.list(vcv)) {
     cli::cli_abort(
       "Expected a list for 'vcv'",
@@ -77,6 +79,11 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
   internal <- new.env(parent = emptyenv())
 
   boundaries <- match_value(boundaries, c("reflect", "reject", "ignore"))
+  
+  if (!identical(unname(rerun_every), Inf)) {
+    assert_scalar_positive_integer(rerun_every)
+  }
+  assert_scalar_logical(rerun_random)
 
   initialise <- function(pars, model, rng) {
     if (!model$properties$has_parameter_groups) {
@@ -89,6 +96,10 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
       stopifnot(model$properties$allow_multiple_parameters)
     }
     
+    internal$rerun <- 
+      make_rerun(rerun_every, rerun_random, model$properties$is_stochastic)
+    internal$step <- 0
+
     vcv <- sampler_validate_nested_vcv(vcv, model$parameter_groups, pars)
 
     internal$proposal <- nested_proposal(vcv, model$parameter_groups, pars,
@@ -132,6 +143,17 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
   ## either changing the behaviour of the step function or swapping in
   ## a different version.
   step <- function(state, model, rng) {
+    internal$step <- internal$step + 1
+    rerun <- internal$rerun(internal$step, rng)
+    if (any(rerun)) {
+      ## This is currently just setup assuming we are not using multiple
+      ## parameters as currently they cannot be used with stochastic models,
+      ## while the rerun is only used with stochastic models
+      density <- model$density(state$pars, by_group = TRUE)
+      state$density <- c(density)
+      internal$density_by_group <- attr(density, "by_group")
+    }
+    
     if (!is.null(internal$proposal$base)) {
       pars_next <- internal$proposal$base(state$pars, rng)
 
