@@ -25,6 +25,12 @@
 ##'   we may also support this in `gradient`).  Use `NULL` (the
 ##'   default) to detect this from the model.
 ##'
+##' @param has_observer Logical, indicating if the model has an
+##'   "observation" function, which we will describe more fully soon.
+##'   An observer is a function `observe` which takes no arguments and
+##'   returns arbitrary data about the previously evaluated density.
+##'   Use `NULL` (the default) to detect this from the model.
+##'
 ##' @param allow_multiple_parameters Logical, indicating if the
 ##'   density calculation can support being passed a matrix of
 ##'   parameters (with each column corresponding to a different
@@ -51,13 +57,20 @@ monty_model_properties <- function(has_gradient = NULL,
                                    has_direct_sample = NULL,
                                    is_stochastic = NULL,
                                    has_parameter_groups = NULL,
+                                   has_observer = NULL,
                                    allow_multiple_parameters = FALSE) {
-  ## TODO: What name do we want for this property, really?
+  assert_scalar_logical(has_gradient, allow_null = TRUE)
+  assert_scalar_logical(has_direct_sample, allow_null = TRUE)
+  assert_scalar_logical(is_stochastic, allow_null = TRUE)
+  assert_scalar_logical(has_parameter_groups, allow_null = TRUE)
+  assert_scalar_logical(has_observer, allow_null = TRUE)
   assert_scalar_logical(allow_multiple_parameters)
+
   ret <- list(has_gradient = has_gradient,
               has_direct_sample = has_direct_sample,
               is_stochastic = is_stochastic,
               has_parameter_groups = has_parameter_groups,
+              has_observer = has_observer,
               ## TODO: I am not convinced on this name
               allow_multiple_parameters = allow_multiple_parameters)
   class(ret) <- "monty_model_properties"
@@ -184,6 +197,7 @@ monty_model <- function(model, properties = NULL) {
   properties <- validate_model_properties(properties, call)
   gradient <- validate_model_gradient(model, properties, call)
   direct_sample <- validate_model_direct_sample(model, properties, call)
+  observer <- validate_model_observer(model, properties, call)
   rng_state <- validate_model_rng_state(model, properties, call)
   parameter_groups <- validate_model_parameter_groups(model, properties, call)
 
@@ -192,6 +206,7 @@ monty_model <- function(model, properties = NULL) {
   properties$has_direct_sample <- !is.null(direct_sample)
   properties$is_stochastic <- !is.null(rng_state$set)
   properties$has_parameter_groups <- !is.null(parameter_groups)
+  properties$has_observer <- !is.null(observer)
 
   ret <- list(model = model,
               parameters = parameters,
@@ -200,6 +215,7 @@ monty_model <- function(model, properties = NULL) {
               density = density,
               gradient = gradient,
               direct_sample = direct_sample,
+              observer = observer,
               rng_state = rng_state,
               properties = properties)
   class(ret) <- "monty_model"
@@ -438,6 +454,26 @@ validate_model_direct_sample <- function(model, properties, call) {
 }
 
 
+validate_model_observer <- function(model, properties, call) {
+  if (isFALSE(properties$has_observer)) {
+    return(NULL)
+  }
+  value <- model$observer
+  if (isTRUE(properties$has_observer) && !inherits(value, "monty_observer")) {
+    cli::cli_abort(
+      paste("Did not find a 'monty_observer' object 'observer' within",
+            "your model, but your properties say that it should exist"),
+      arg = "model", call = call)
+  }
+  if (!is.null(value) && !inherits(value, "monty_observer")) {
+    cli::cli_abort(
+      "Expected 'model$observer' to be a 'monty_observer' if non-NULL",
+      arg = "model", call = call)
+  }
+  value
+}
+
+
 validate_model_rng_state <- function(model, properties, call) {
   not_stochastic <- isFALSE(properties$is_stochastic) || (
     is.null(properties$is_stochastic) &&
@@ -582,7 +618,8 @@ print.monty_model <- function(x, ...) {
 monty_model_properties_str <- function(properties) {
   c(if (properties$has_gradient) "can compute gradients",
     if (properties$has_direct_sample) "can be directly sampled from",
-    if (properties$is_stochastic) "is stochastic")
+    if (properties$is_stochastic) "is stochastic",
+    if (properties$has_observer) "has an observer")
 }
 
 

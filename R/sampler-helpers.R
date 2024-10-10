@@ -1,8 +1,11 @@
 initialise_state <- function(pars, model, rng) {
   initialise_rng_state(model, rng)
   density <- model$density(pars)
-  ## TODO: in next PR observe.
-  observation <- NULL
+  if (model$properties$has_observer) {
+    observation <- model$observer$observe()
+  } else {
+    observation <- NULL
+  }
   list(pars = pars, density = density, observation = observation)
 }
 
@@ -16,7 +19,9 @@ update_state <- function(state, pars, density, accept, model, rng) {
     } else {
       state$pars <- pars
       state$density <- density
-      ## TODO: cope with observation
+      if (model$properties$has_observer) {
+        state$observation <- model$observer$observe()
+      }
     }
   }
   state

@@ -247,3 +247,21 @@ test_that("can run nested random walk sampler with rejecting boundaries
   res2 <- monty_sample(m, sampler, 100, n_chains = 3, runner = runner)
   expect_equal(res1, res2)
 })
+
+
+test_that("Can rerun a nested stochastic model", {
+  set.seed(1)
+  ng <- 5
+  m <- ex_simple_nested_with_base_stochastic(ng)
+  vcv <- list(base = diag(1), groups = rep(list(diag(1)), ng))
+  sampler1 <- monty_sampler_nested_random_walk(vcv, rerun_every = 2)
+  sampler2 <- monty_sampler_nested_random_walk(vcv, rerun_every = 2,
+                                               rerun_random = TRUE)
+  res1 <- monty_sample(m, sampler1, 20)
+  res2 <- monty_sample(m, sampler2, 20)
+  
+  expect_gt(sum(diff(res1$density) != 0), sum(diff(res1$pars[1, , 1]) != 0))
+  expect_true(all(diff(res1$density)[seq(1, 20, by = 2)] != 0))
+  expect_gt(sum(diff(res2$density) != 0), sum(diff(res2$pars[1, , 1]) != 0))
+})
+

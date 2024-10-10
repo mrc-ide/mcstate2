@@ -199,8 +199,7 @@ monty_run_chain2 <- function(chain_state, model, sampler, n_steps,
                              progress, rng, r_rng_state) {
   initial <- chain_state$pars
   n_pars <- length(model$parameters)
-  ## has_observer <- model$properties$has_observer
-  has_observer <- FALSE
+  has_observer <- model$properties$has_observer
 
   history_pars <- matrix(NA_real_, n_pars, n_steps)
   history_density <- rep(NA_real_, n_steps)
@@ -210,7 +209,7 @@ monty_run_chain2 <- function(chain_state, model, sampler, n_steps,
     chain_state <- sampler$step(chain_state, model, rng)
     history_pars[, i] <- chain_state$pars
     history_density[[i]] <- chain_state$density
-    if (!is.null(chain_state$observation)) {
+    if (has_observer && !is.null(chain_state$observation)) {
       history_observation[[i]] <- chain_state$observation
     }
     progress(i)
@@ -223,7 +222,7 @@ monty_run_chain2 <- function(chain_state, model, sampler, n_steps,
   details <- sampler$finalise(chain_state, model, rng)
 
   if (has_observer) {
-    ## history_observation <- model$observer$finalise(history_observation)
+    history_observation <- model$observer$finalise(history_observation)
   }
 
   ## This list will hold things that we'll use internally but not

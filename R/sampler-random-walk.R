@@ -22,16 +22,38 @@
 ##'
 ##' The initial point selected will lie within the domain, as this is
 ##' enforced by [monty_sample].
+##' 
+##' @param rerun_every Optional integer giving the frequency at which
+##'   we should rerun the model on the current "accepted" parameters to 
+##'   obtain a new density for stochastic models.  The default for this 
+##'   (`Inf`) will never trigger a rerun, but if you set to 100, then
+##'   every 100 steps we run the model on both the proposed *and* previously
+##'   accepted parameters before doing the comparison.  This may help "unstick"
+##'   chains, at the cost of some bias in the results.
+##'
+##' @param rerun_random Logical, controlling the behaviour of
+##'   rerunning (when `rerun_every` is finite). The default value of
+##'   `FALSE` will rerun the model at fixed intervals of iterations
+##'   (given by `rerun_every`). If `TRUE`, then we stochastically
+##'   rerun each step with probability of `1 / rerun_every`. This gives
+##'   the same expected number of MCMC steps between reruns but a different
+##'   pattern.
 ##'
 ##' @return A `monty_sampler` object, which can be used with
 ##'   [monty_sample]
 ##'
 ##' @export
-monty_sampler_random_walk <- function(vcv = NULL, boundaries = "reflect") {
+monty_sampler_random_walk <- function(vcv = NULL, boundaries = "reflect",
+                                      rerun_every = Inf, rerun_random = FALSE) {
   check_vcv(vcv, allow_3d = TRUE, call = environment())
   internal <- new.env()
 
   boundaries <- match_value(boundaries, c("reflect", "reject", "ignore"))
+  
+  if (!identical(unname(rerun_every), Inf)) {
+    assert_scalar_positive_integer(rerun_every)
+  }
+  assert_scalar_logical(rerun_random)
 
   initialise <- function(pars, model, rng) {
     n_pars <- length(model$parameters)
@@ -40,6 +62,10 @@ monty_sampler_random_walk <- function(vcv = NULL, boundaries = "reflect") {
       ## this is enforced elsewhere
       stopifnot(model$properties$allow_multiple_parameters)
     }
+    
+    internal$rerun <- 
+      make_rerun(rerun_every, rerun_random, model$properties$is_stochastic)
+    internal$step <- 0
 
     vcv <- sampler_validate_vcv(vcv, pars)
     internal$proposal <-
@@ -48,6 +74,15 @@ monty_sampler_random_walk <- function(vcv = NULL, boundaries = "reflect") {
   }
 
   step <- function(state, model, rng) {
+    internal$step <- internal$step + 1
+    rerun <- internal$rerun(internal$step, rng)
+    if (any(rerun)) {
+      density <- model$density(state$pars)
+      ## Treat this as an "accept everything" update
+      state <- update_state(state, state$pars, density,
+                            rep(TRUE, length(rerun)),
+                            model, rng)
+    }
     pars_next <- internal$proposal(state$pars, rng)
     reject_some <- boundaries == "reject" &&
       !all(i <- is_parameters_in_domain(pars_next, model$domain))
@@ -145,5 +180,16 @@ is_parameters_in_domain <- function(x, domain) {
     if (is.matrix(x)) rep(TRUE, ncol(x)) else TRUE
   } else {
     if (is.matrix(x)) apply(i, 2, all) else FALSE
+  }
+}
+
+
+make_rerun <- function(every, random, is_stochastic) {
+  if (!is_stochastic && !is.finite(every)) {
+    function(i, rng) rep(FALSE, rng$size())
+  } else if (random) {
+    function(i, rng) rng$random_real(1) < 1 / every
+  } else {
+    function(i, rng) rep(i %% every == 0, rng$size())
   }
 }

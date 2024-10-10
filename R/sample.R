@@ -97,9 +97,7 @@ monty_sample <- function(model, sampler, n_steps, initial = NULL,
   pars <- initial_parameters(initial, model, rng, environment())
   res <- runner$run(pars, model, sampler, n_steps, rng)
 
-  ## TODO: everywhere we write this combine_chains with observer,
-  ## respect the property, not the presence of a method.  Will be done
-  ## in the next PR.
+  observer <- if (model$properties$has_observer) model$observer else NULL
   samples <- combine_chains(res, model$observer)
   if (restartable) {
     samples$restart <- restart_data(res, model, sampler, runner)
@@ -153,7 +151,7 @@ monty_sample_continue <- function(samples, n_steps, restartable = FALSE,
 
   res <- runner$continue(state, model, sampler, n_steps)
 
-  observer <- model$observer # See above about respecting properties
+  observer <- if (model$properties$has_observer) model$observer else NULL
   samples <- append_chains(samples, combine_chains(res, observer), observer)
 
   if (restartable) {
