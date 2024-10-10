@@ -186,18 +186,20 @@ test_that("can run a sampler with shared parameters", {
 
 
 test_that("can run an observer during a nested fit", {
-  skip("FIXME: add model-based observer")
   set.seed(1)
   ng <- 5
   m <- ex_simple_nested_with_base(ng)
   s <- monty_sampler_nested_random_walk(
     list(base = diag(1), groups = rep(list(diag(1)), ng)))
   counter <- 0
-  observer <- monty_observer(function(...) {
+  ## Directly wire this in for now; we really just need better
+  ## examples here.
+  m$observer <- monty_observer(function(...) {
     counter <<- counter + 1
     list(n = counter)
   })
-  res <- monty_sample(m, s, 100, observer = observer)
+  m$properties$has_observer <- TRUE
+  res <- monty_sample(m, s, 100)
   expect_equal(
     dim(res$observations$n),
     c(1, 100, 1))

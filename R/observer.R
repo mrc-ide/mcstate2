@@ -70,7 +70,6 @@ monty_observer <- function(observe,
 ##' @export
 print.monty_observer <- function(x, ...) {
   cli::cli_h1("<monty_observer>")
-  cli::cli_alert_info("Use {.help monty_sample} to use this observer")
   cli::cli_alert_info("See {.help monty_observer} for more information")
   invisible(x)
 }

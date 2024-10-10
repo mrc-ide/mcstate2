@@ -116,9 +116,10 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
 
     internal$density_by_group <- density_by_group
     state <- list(pars = pars, density = c(density))
-    ## TODO: we need to fix observation here; it should move into a
-    ## helper as part of a setup I think; see the sampler-helpers for
-    ## the single-parameter case.
+    ## TODO: mrc-5862
+    if (model$properties$has_observer) {
+      state$observation <- model$observer$observe()
+    }
     state
   }
 
@@ -163,7 +164,10 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
         state$pars <- pars_next
         state$density <- density_next
         internal$density_by_group <- density_by_group_next
-        ## TODO: observe here
+        ## TODO: mrc-5862
+        if (model$properties$has_observer) {
+          state$observation <- model$observer$observe()
+        }
       }
     }
 
@@ -227,7 +231,10 @@ monty_sampler_nested_random_walk <- function(vcv, boundaries = "reflect") {
       state$pars <- pars_next
       state$density <- c(density_next)
       internal$density_by_group <- density_by_group_next
-      ## TODO: observe here
+      ## TODO: mrc-5862
+      if (model$properties$has_observer) {
+        state$observation <- model$observer$observe()
+      }
     }
     state
   }

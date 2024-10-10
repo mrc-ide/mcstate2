@@ -226,3 +226,47 @@ test_that("Can't force creation of stochastic model from deterministic", {
     monty_model_combine(a, a, monty_model_properties(is_stochastic = TRUE)),
     "Can't create stochastic support functions for these models")
 })
+
+
+test_that("cominining models with observers is possible", {
+  a <- monty_model(
+    list(
+      parameters = "x",
+      density = identity,
+      observer = monty_observer(identity)))
+  b <- monty_model(
+    list(
+      parameters = "x",
+      density = identity))
+  c <- a + b
+  expect_true(c$properties$has_observer)
+  expect_identical(c$observer, a$observer)
+})
+
+
+test_that("Can't create observer where both models have them", {
+  a <- monty_model(
+    list(
+      parameters = "x",
+      density = identity,
+      observer = monty_observer(identity)))
+  b <- a + a
+  expect_false(b$properties$has_observer)
+  expect_null(b$observer)
+
+  properties <- monty_model_properties(has_observer = TRUE)
+  err <- expect_error(
+    monty_model_combine(a, a, properties = properties),
+    "Can't create an observer from these models")
+  expect_match(conditionMessage(err),
+               "Both models have an 'observer' object")
+  err <- expect_error(
+    monty_model_combine(b, b, properties = properties),
+    "Can't create an observer from these models")
+  expect_match(conditionMessage(err),
+               "Neither of your models have 'observer' objects")
+
+  properties <- monty_model_properties(has_observer = FALSE)
+  res <- monty_model_combine(a, a, properties = properties)
+  expect_false(res$properties$has_observer)
+})

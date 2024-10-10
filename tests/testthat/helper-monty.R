@@ -109,20 +109,6 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
 
   trajectories <- NULL
 
-  ## In the new dust wrapper we'll need to make this nicer; I think
-  ## that this is pretty painful atm because we wrap via the particle
-  ## filter method in mcstate1.  This version replicates most of what
-  ## we need though, which is some subset of the model
-  details <- function(idx_particle) {
-    if (save_trajectories) {
-      traj <- trajectories[, idx_particle, , drop = FALSE]
-      dim(traj) <- dim(traj)[-2]
-    } else {
-      traj <- NULL
-    }
-    list(trajectories = traj, state = model$state()[, idx_particle])
-  }
-
   density <- function(x) {
     beta <- x[[1]]
     gamma <- x[[2]]
@@ -163,13 +149,38 @@ ex_dust_sir <- function(n_particles = 100, n_threads = 1,
     model$rng_state()
   }
 
+  if (save_trajectories) {
+    observer <- monty_observer(
+      function() {
+        ## TODO: It's not really clear to me (Rich) that we want the
+        ## rng coming in here.  In dust2 we'll correctly use the
+        ## *filter* rng.  however, even there we end up with the act
+        ## of observation changing the behaviour of the sampler and I
+        ## am not sure that is really desirable.  We could probably
+        ## improve that in dust, but that would require that we do not
+        ## pass the rng here too.  So for now we take the first
+        ## particle.
+        ## i <- floor(rng$random_real(1) * model$model$n_particles()) + 1L
+        i <- 1L
+        if (save_trajectories) {
+          traj <- trajectories[, i, , drop = FALSE]
+          dim(traj) <- dim(traj)[-2]
+        } else {
+          traj <- NULL
+        }
+        list(trajectories = traj, state = model$state()[, i])
+      })
+  } else {
+    observer <- NULL
+  }
+
   monty_model(
     list(model = model,
-         details = details,
          density = density,
          direct_sample = direct_sample,
          parameters = c("beta", "gamma"),
          domain = cbind(c(0, 0), c(Inf, Inf)),
+         observer = observer,
          set_rng_state = set_rng_state,
          get_rng_state = get_rng_state),
     monty_model_properties(is_stochastic = !deterministic))
@@ -213,20 +224,6 @@ ex_dust_sir_likelihood <- function(n_particles = 100, n_threads = 1,
 
   trajectories <- NULL
 
-  ## In the new dust wrapper we'll need to make this nicer; I think
-  ## that this is pretty painful atm because we wrap via the particle
-  ## filter method in mcstate1.  This version replicates most of what
-  ## we need though, which is some subset of the model
-  details <- function(idx_particle) {
-    if (save_trajectories) {
-      traj <- trajectories[, idx_particle, , drop = FALSE]
-      dim(traj) <- dim(traj)[-2]
-    } else {
-      traj <- NULL
-    }
-    list(trajectories = traj, state = model$state()[, idx_particle])
-  }
-
   density <- function(x) {
     beta <- x[[1]]
     gamma <- x[[2]]
@@ -255,11 +252,36 @@ ex_dust_sir_likelihood <- function(n_particles = 100, n_threads = 1,
     model$rng_state()
   }
 
+  if (save_trajectories) {
+    observer <- monty_observer(
+      function() {
+        ## TODO: It's not really clear to me (Rich) that we want the
+        ## rng coming in here.  In dust2 we'll correctly use the
+        ## *filter* rng.  however, even there we end up with the act
+        ## of observation changing the behaviour of the sampler and I
+        ## am not sure that is really desirable.  We could probably
+        ## improve that in dust, but that would require that we do not
+        ## pass the rng here too.  So for now we take the first
+        ## particle.
+        ## i <- floor(rng$random_real(1) * model$model$n_particles()) + 1L
+        i <- 1L
+        if (save_trajectories) {
+          traj <- trajectories[, i, , drop = FALSE]
+          dim(traj) <- dim(traj)[-2]
+        } else {
+          traj <- NULL
+        }
+        list(trajectories = traj, state = model$state()[, i])
+      })
+  } else {
+    observer <- NULL
+  }
+
   monty_model(
     list(model = model,
-         details = details,
          density = density,
          parameters = c("beta", "gamma"),
+         observer = observer,
          set_rng_state = set_rng_state,
          get_rng_state = get_rng_state),
     monty_model_properties(is_stochastic = !deterministic))

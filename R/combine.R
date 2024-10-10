@@ -93,13 +93,14 @@ monty_model_combine <- function(a, b, properties = NULL,
   domain <- model_combine_domain(a, b, parameters)
   density <- model_combine_density(a, b, parameters)
 
-
   gradient <- model_combine_gradient(
     a, b, parameters, properties, call)
   direct_sample <- model_combine_direct_sample(
     a, b, parameters, properties, name_a, name_b, call)
   stochastic <- model_combine_stochastic(
     a, b, properties)
+  observer <- model_combine_observer(
+    a, b, parameters, properties, name_a, name_b, call)
 
   monty_model(
     list(model = list(a, b),
@@ -109,6 +110,7 @@ monty_model_combine <- function(a, b, properties = NULL,
          gradient = gradient,
          get_rng_state = stochastic$get_rng_state,
          set_rng_state = stochastic$set_rng_state,
+         observer = observer,
          direct_sample = direct_sample),
     properties)
 }
@@ -279,4 +281,33 @@ model_combine_direct_sample <- function(a, b, parameters, properties,
   function(...) {
     model$direct_sample(...)[i]
   }
+}
+
+
+model_combine_observer <- function(a, b, parameters, properties,
+                                   name_a, name_b, call = NULL) {
+  if (isFALSE(properties$has_observer)) {
+    return(NULL)
+  }
+  possible <- a$properties$has_observer != b$properties$has_observer
+  required <- isTRUE(properties$has_observer)
+  if (!possible && !required) {
+    return(NULL)
+  }
+  if (required && !possible) {
+    if (a$properties$has_observer) {
+      hint <- paste("Both models have an 'observer' object so we can't",
+                    "combine them. Set 'has_observer = FALSE' on one",
+                    "of your models and try again")
+    } else {
+      hint <- "Neither of your models have 'observer' objects"
+    }
+    cli::cli_abort(
+      c("Can't create an observer from these models",
+        i = hint),
+      call = call)
+  }
+
+  model <- if (a$properties$has_observer) a else b
+  model$observer
 }

@@ -36,20 +36,13 @@ test_that("can draw samples from a random model", {
 
 
 test_that("can observe a model", {
-  skip("FIXME: add model-based observer")
   m <- ex_dust_sir(save_trajectories = TRUE)
   vcv <- matrix(c(0.0006405, 0.0005628, 0.0005628, 0.0006641), 2, 2)
   sampler <- monty_sampler_random_walk(vcv = vcv)
 
-  observer <- monty_observer(
-    function(model, rng) {
-      i <- floor(rng$random_real(1) * model$model$n_particles()) + 1L
-      model$details(i)
-    })
-
   ## This takes quite a while, and that seems mostly to be the time
   ## taken to call the filter in dust.
-  res <- monty_sample(m, sampler, 20, n_chains = 3, observer = observer)
+  res <- monty_sample(m, sampler, 20, n_chains = 3)
   expect_setequal(names(res),
                   c("pars", "density", "initial", "details", "observations"))
   expect_equal(names(res$observations),
@@ -64,24 +57,15 @@ test_that("can observe a model", {
 
 
 test_that("can continue observed models", {
-  skip("FIXME: add model-based observer")
   m <- ex_dust_sir(save_trajectories = TRUE)
   vcv <- matrix(c(0.0006405, 0.0005628, 0.0005628, 0.0006641), 2, 2)
   sampler <- monty_sampler_random_walk(vcv = vcv)
 
-  observer <- monty_observer(
-    function(model, rng) {
-      ## ideally we get a random sample here, but that's not easy with
-      ## current dust
-      model$details(4)
-    })
+  set.seed(1)
+  res1 <- monty_sample(m, sampler, 15, n_chains = 3)
 
   set.seed(1)
-  res1 <- monty_sample(m, sampler, 15, n_chains = 3, observer = observer)
-
-  set.seed(1)
-  res2a <- monty_sample(m, sampler, 5, n_chains = 3, observer = observer,
-                          restartable = TRUE)
+  res2a <- monty_sample(m, sampler, 5, n_chains = 3, restartable = TRUE)
   res2b <- monty_sample_continue(res2a, 10)
 
   expect_equal(res1$observations, res2b$observations)

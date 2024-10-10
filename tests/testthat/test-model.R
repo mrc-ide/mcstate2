@@ -6,6 +6,7 @@ test_that("can create a minimal model", {
                monty_model_properties(has_gradient = FALSE,
                                       has_direct_sample = FALSE,
                                       is_stochastic = FALSE,
+                                      has_observer = FALSE,
                                       has_parameter_groups = FALSE))
   expect_equal(m$domain, rbind(a = c(-Inf, Inf)))
   expect_equal(m$parameters, "a")
@@ -20,6 +21,7 @@ test_that("can create a more interesting model", {
                                       has_direct_sample = TRUE,
                                       is_stochastic = FALSE,
                                       has_parameter_groups = FALSE,
+                                      has_observer = FALSE,
                                       allow_multiple_parameters = TRUE))
   expect_equal(m$domain, rbind(gamma = c(0, Inf)))
   expect_equal(m$parameters, "gamma")
@@ -57,6 +59,37 @@ test_that("require direct sample is a function if given", {
                      parameters = "a")),
     "Expected 'model$direct_sample' to be a function if non-NULL",
     fixed = TRUE)
+})
+
+
+test_that("require observer is a monty_observer if given", {
+  expect_error(
+    monty_model(list(density = identity,
+                     observer = TRUE,
+                     parameters = "a")),
+    "Expected 'model$observer' to be a 'monty_observer' object if non-NULL",
+    fixed = TRUE)
+})
+
+
+test_that("observer must exist if required", {
+  properties <- monty_model_properties(has_observer = TRUE)
+  expect_error(
+    monty_model(list(parameters = "a", density = identity),
+                properties = properties),
+    "Did not find a 'monty_observer' object 'observer' within your model")
+})
+
+
+test_that("Ignore invalid observer if properties say to ignore it", {
+  properties <- monty_model_properties(has_observer = FALSE)
+  res <- monty_model(list(density = identity,
+                          observer = TRUE,
+                          parameters = "a"),
+                     properties = properties)
+  expect_s3_class(res, "monty_model")
+  expect_false(res$properties$has_observer)
+  expect_null(res$observer)
 })
 
 
