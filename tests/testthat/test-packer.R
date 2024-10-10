@@ -382,3 +382,66 @@ test_that("if process is present ignore extra names", {
     p$pack(list(a = 1, b = 2)),
     1:2)
 })
+
+
+test_that("can subset a packer of scalars", {
+  p <- monty_packer(c("a", "b", "c", "d"))
+  res <- p$subset(c("b", "c"))
+  expect_equal(res$index, 2:3)
+  expect_equal(res$packer$parameters, c("b", "c"))
+  expect_equal(res$packer$unpack(1:2), list(b = 1, c = 2))
+})
+
+
+test_that("can subset a packer of arrays", {
+  p <- monty_packer(array = list(a = integer(), b = 2, c = c(3, 3)))
+  res <- p$subset(c("a", "c"))
+  expect_equal(res$index, c(1, 4:12))
+
+  cmp <- monty_packer(array = list(a = integer(), c = c(3, 3)))
+  expect_equal(res$packer$parameters, cmp$parameters)
+  expect_equal(res$packer$index(), cmp$index())
+})
+
+
+test_that("can reorder on subset", {
+  p <- monty_packer(c("a", "b"), list(c = 2, d = integer(), e = 2, f = 3))
+  res <- p$subset(c("d", "a", "c"))
+  cmp <- monty_packer(array = list(d = integer(), a = integer(), c = 2))
+
+  expect_equal(res$index, c(5, 1, 3, 4))
+  expect_equal(res$packer$index(), cmp$index())
+})
+
+
+test_that("prevent duplicates in subset", {
+  p <- monty_packer(c("a", "b"), list(c = 2, d = integer(), e = 2, f = 3))
+  expect_error(
+    p$subset(c("a", "a", "b", "c")),
+    "Duplicated name in 'keep': 'a'")
+  expect_error(
+    p$subset(c("a", "a", "b", "c", "b")),
+    "Duplicated names in 'keep': 'a' and 'b'")
+})
+
+
+test_that("prevent unknown names in subset", {
+  p <- monty_packer(c("a", "b"))
+  expect_error(
+    p$subset(c("a", "b", "c")),
+    "Unknown name in 'keep': 'c'")
+  expect_error(
+    p$subset(c("a", "b", "c", "d")),
+    "Unknown names in 'keep': 'c' and 'd'")
+})
+
+
+test_that("don't allow things other than character vectors for now", {
+  p <- monty_packer(c("a", "b"))
+  expect_error(
+    p$subset(NULL),
+    "Invalid input for 'keep'; this must currently be a character vector")
+  expect_error(
+    p$subset(1),
+    "Invalid input for 'keep'; this must currently be a character vector")
+})

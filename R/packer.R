@@ -193,6 +193,9 @@
 ##'   element has the name of a value in `parameters` and each value
 ##'   has the indices within an unstructured vector where these values
 ##'   can be found.
+##' * `subset`: an experimental interface which can be used to subset a
+##'   packer to a packer for a subset of contents. Documentation will
+##'   be provided once the interface settles.
 ##'
 ##' @export
 ##'
@@ -349,10 +352,42 @@ monty_packer <- function(scalar = NULL, array = NULL, fixed = NULL,
     ret
   }
 
+  subset <- function(keep) {
+    ## TODO: later we will allow passing integer indexes here.  This
+    ## is complicated because we should probably retain structure for
+    ## any compartments that are entirely captured (contiguously and
+    ## in order) and convert everything else into scalars.  Or perhaps
+    ## if we take a slice out of a matrix we keep it as an array.
+    ## Lots of decisions to make, so do it later.
+    if (is.character(keep)) {
+      if (anyDuplicated(keep)) {
+        dups <- unique(keep[duplicated(keep)])
+        cli::cli_abort("Duplicated name{?s} in 'keep': {squote(dups)}")
+      }
+      i <- match(keep, names(idx))
+      if (anyNA(i)) {
+        cli::cli_abort("Unknown name{?s} in 'keep': {squote(keep[is.na(i)])}")
+      }
+      index <- unlist(idx[i], FALSE, FALSE)
+      ## Convert all scalars into array spec for now; this allows
+      ## reordering.
+      shape2 <- c(set_names(rep(list(integer()), length(scalar)), scalar),
+                  shape)
+      scalar_keep <- NULL
+      array_keep <- shape2[keep]
+    } else {
+      cli::cli_abort(
+        "Invalid input for 'keep'; this must currently be a character vector")
+    }
+    list(index = index,
+         packer = monty_packer(scalar_keep, array_keep))
+  }
+
   ret <- list(parameters = parameters,
               unpack = unpack,
               pack = pack,
-              index = function() idx)
+              index = function() idx,
+              subset = subset)
   class(ret) <- "monty_packer"
   ret
 }

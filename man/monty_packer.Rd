@@ -54,6 +54,9 @@ statistical model.  This ignores values created by a
 element has the name of a value in \code{parameters} and each value
 has the indices within an unstructured vector where these values
 can be found.
+\item \code{subset}: an experimental interface which can be used to subset a
+packer to a packer for a subset of contents. Documentation will
+be provided once the interface settles.
 }
 }
 \description{
